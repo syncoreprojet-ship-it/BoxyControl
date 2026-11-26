@@ -643,6 +643,7 @@ h2{font-size:17px;line-height:1.3;letter-spacing:-.3px;margin:0;font-weight:780}
           <?!= HtmlService.createHtmlOutputFromFile('BXCT_FORM_AdminInterface').getContent() ?>
           </div>
           <div id="bxct-aca-hub-sessions" hidden>
+          <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_SessionInterface').getContent() ?>
           <section class="academy-board" aria-labelledby="academy-board-title">
             <div class="academy-board-head">
               <div><h3 id="academy-board-title">Suivi des sessions</h3><p>Données de BOXY CLIENT · lecture seule</p></div>
@@ -658,10 +659,12 @@ h2{font-size:17px;line-height:1.3;letter-spacing:-.3px;margin:0;font-weight:780}
             <p class="academy-board-footer">Une demande reçue ne réserve aucune place. Les confirmations et listes d'attente proviennent exclusivement des décisions CONTROL.</p>
           </section>
           </div>
+          <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_PilotageInterface').getContent() ?>
           <section id="academy-lookup-panel" class="academy-lookup-panel" aria-label="Recherche d'une inscription ACADÉMIE" hidden>
             <button type="button" id="academy-lookup-back" class="academy-back"><svg><use href="#i-arrow-right"/></svg> Retour à ACADÉMIE</button>
             <div class="academy-lookup-heading"><span class="academy-detail-icon"><svg><use href="#i-search"/></svg></span><div><span class="academy-eyebrow">BOXY ACAD&Eacute;MIE &middot; INSCRIPTIONS</span><h2>Retrouver un participant</h2></div></div>
             <p class="academy-lookup-intro">Recherchez uniquement un dossier de formation avec un code <strong>BX.FOR.xx</strong> ou son QR code. Les autres codes se recherchent dans l'onglet général.</p>
+            <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_RosterInterface').getContent() ?>
             <form id="academy-lookup-form" autocomplete="off">
               <label for="academy-lookup-code">Code de l'inscription</label>
               <div class="academy-search-wrap"><svg><use href="#i-search"/></svg><input id="academy-lookup-code" name="code" type="text" inputmode="text" maxlength="100" placeholder="BX.FOR.01" autocomplete="off" autocapitalize="characters" spellcheck="false" required></div>
@@ -1150,6 +1153,7 @@ function logout(){
   payReset();prodReset();presenceReset();bookingReset();arreterScanner();effacerDossier();
   qs('lookup-code').value='';qs('lookup-notice').hidden=true;qs('lookup-generic-card').hidden=true;
   setLookupEnable(false);idToken=null;auth=null;previewMode=false;
+  if(window.BXCT_ACA_SESSION_UI)BXCT_ACA_SESSION_UI.reset();
   qs('bx-header-caption').textContent='Espace équipe · Accès sécurisé';
   qs('dashboard').hidden=true;qs('auth-panel').hidden=false;
   qs('login-status').hidden=true;bxLoginForme_(false);
@@ -1881,6 +1885,7 @@ qs('pay-cash-day').value=payToday();
 let academyActivity='photo';
 let academyData=null;
 let academyAccess=false;
+let academyPilotageAccess=false;
 let academyBusy=false;
 let academyRequest=0;
 function academyNotice(txt,type='') {
@@ -1893,6 +1898,7 @@ function academyBoardSetCounts(d) {
 function academyInitSession(result) {
   academyRequest++;academyActivity='photo';academyData=null;academyBusy=false;
   academyAccess=Boolean(result.demo||result.features?.academyCatalogueActive);
+  academyPilotageAccess=Boolean(result.demo||result.agent?.role==='ADMIN_CONTROL');
   qs('academy-board-refresh').disabled=!academyAccess;
   qs('academy-board-status').textContent='Ouvrez ACADÉMIE pour consulter les données.';
   academyBoardSetCounts(null);
@@ -1901,7 +1907,7 @@ function academyInitSession(result) {
   academySetActivity('photo',false);
 }
 function academyOnLogout() {
-  academyRequest++;academyBusy=false;academyData=null;academyAccess=false;
+  academyRequest++;academyBusy=false;academyData=null;academyAccess=false;academyPilotageAccess=false;
   qs('academy-board-refresh').disabled=true;
   qs('academy-board-status').textContent='Reconnectez-vous pour consulter les sessions.';
   qs('academy-board-rows').replaceChildren();academyBoardSetCounts(null);
@@ -1923,7 +1929,7 @@ function academySetActivity(name,showPanel=true) {
     'Gestion des formations et des apprenants BOXY ACADÉMIE.':
     'Retrouvez vos demandes BOXY PHOTO, directement depuis BOXY CLIENT.';
   if(showPanel)switchTab('home');
-  if(active)academyLoad();
+  if(active){if(window.BXCT_ACA_SESSION_UI)BXCT_ACA_SESSION_UI.summary();else academyLoad();}
 }
 function academyHandleNavLookup() {
   // L'onglet Recherche est général pour tous les codes et prestations BOXY.
@@ -2245,10 +2251,12 @@ function acad3Open(){
   if(previewMode){acad3Current=acad3DemoLoad();acad3Render();return;}
   if(!idToken || !window.google?.script?.run){acad3Note('Session expirée ou service indisponible.',true);return;}
   acad3Busy=true;acad3Disable();
+  const requestToken=idToken,requestPerson=acad3Person;
+  const current=()=>requestToken===idToken&&requestPerson===acad3Person&&!qs('academy-lookup-panel').hidden;
   google.script.run.withSuccessHandler(r=>{
-    acad3Busy=false;if(!r?.ok){acad3Note('État indisponible.',true);return;}
+    if(!current())return;acad3Busy=false;if(!r?.ok){acad3Note('État indisponible.',true);return;}
     acad3Current=r;acad3Render();
-  }).withFailureHandler(()=>{acad3Busy=false;acad3Note('Accès fermé ou lecture indisponible.',true);acad3Disable();})
+  }).withFailureHandler(()=>{if(!current())return;acad3Busy=false;acad3Note('Accès fermé ou lecture indisponible.',true);acad3Disable();})
     .controlAcademieEtatLot3(idToken,acad3Person.code);
 }
 function acad3Disable(){qs('academy-decision-submit').disabled=true;}
@@ -2267,7 +2275,7 @@ function acad3Render(){
   const target=qs('academy-decision-session');target.replaceChildren();
   (d.sessionsDisponibles||[]).forEach(s=>{
     const option=document.createElement('option');option.value=s.code;
-    option.textContent=s.titre+(s.active?'':' (brouillon / fermé)');
+    option.textContent=s.titre+' · '+s.code+(s.date?' · '+s.date:'')+(s.active?'':' (brouillon / fermé)');
     option.disabled=!s.active;target.appendChild(option);
   });
   const selected=Array.from(target.options).find(o=>o.value===d.sessionActuelle);
@@ -2321,8 +2329,10 @@ function acad3Submit(ev){
     versionAttendue:acad3Current.version,cleIdempotence:acad3LastKey||acad3NewKey()};
   if(['TRANSFERER','ANNULER'].includes(req.action) && req.motif.length<5){acad3Note('Ajoutez un motif d’au moins cinq caractères.',true);return;}
   acad3LastKey=req.cleIdempotence;acad3Busy=true;acad3Disable();
+  const requestToken=idToken,requestPerson=acad3Person;
+  const current=()=>requestToken===idToken&&requestPerson===acad3Person&&!qs('academy-lookup-panel').hidden;
   const onSuccess=r=>{
-    acad3Busy=false;
+    if(!current())return;acad3Busy=false;
     if(!r?.ok){acad3Note('Opération non enregistrée.',true);acad3Disable();return;}
     acad3LastKey=null;qs('academy-decision-reason').value='';
     if(previewMode){acad3Current=acad3DemoLoad();acad3Render();}
@@ -2332,7 +2342,7 @@ function acad3Submit(ev){
   };
   if(previewMode){const r=acad3PreviewApply(req);if(r.error){acad3Busy=false;acad3Note(r.error,true);acad3SetAction(acad3Action);return;}onSuccess(r);return;}
   google.script.run.withSuccessHandler(onSuccess).withFailureHandler(()=>{
-    acad3Busy=false;
+    if(!current())return;acad3Busy=false;
     // Conserver la clé; sur un nouvel essai le serveur retourne la même décision si elle a été écrite.
     acad3Note('Décision non confirmée : réessayez avec cette même fiche, ou actualisez l’état.',true);
     acad3SetAction(acad3Action);
@@ -2748,6 +2758,9 @@ qs('academy-finance-review-form').addEventListener('submit',acad5Review);
   <?!= HtmlService.createHtmlOutputFromFile('BXCT_ENC_Client').getContent() ?>
   <?!= HtmlService.createHtmlOutputFromFile('BXCT_ENC_AcademyDeskClient').getContent() ?>
   <?!= HtmlService.createHtmlOutputFromFile('BXCT_FORM_AdminClient').getContent() ?>
+  <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_SessionClient').getContent() ?>
+  <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_RosterClient').getContent() ?>
+  <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_PilotageClient').getContent() ?>
   <?!= HtmlService.createHtmlOutputFromFile('BXCT_ACA_HubClient').getContent() ?>
   <?!= HtmlService.createHtmlOutputFromFile('BXCT_LOGIN_Client').getContent() ?>
   <?!= HtmlService.createHtmlOutputFromFile('BXCT_L3_Client').getContent() ?>

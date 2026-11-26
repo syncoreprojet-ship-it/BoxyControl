@@ -27,7 +27,7 @@ function controlAcademiePresencesLot4(googleIdToken, codeSaisi) {
   const decisions = academyLot3Snapshot_(academyLot3ReadEvents_(ctx.book));
   const state = decisions[dossier.inscriptionId];
   if (!state || state.statut !== 'CONFIRMEE') throw new Error('INSCRIPTION_NON_CONFIRMEE');
-  const session = academyLot4Session_(client, state.session);
+  const session = academyLot4Session_(client, state.session,true);
   if (session.formation !== dossier.formationCode) throw new Error('SESSION_INCOHERENTE');
   academyLot4AuthorizeSession_(ctx, state.session);
   const seances = academyLot4Seances_(client, state.session);
@@ -40,9 +40,9 @@ function controlAcademiePresencesLot4(googleIdToken, codeSaisi) {
       const e=snap[academyLot4Key_(dossier.inscriptionId,state.session,s.numero)];
       return {numero:s.numero,date:s.date,debut:s.heureDebut,fin:s.heureFin,
         activite:s.activite,active:s.validee,statut:e?e.statut:'NON_RENSEIGNE',
-        version:e?e.version:0,modifiable:academyLot4SeanceWindow_(s,'POINTAGE',ctx.settings)};
+        version:e?e.version:0,modifiable:!['TERMINEE','TERMINE','ARCHIVEE'].includes(session.statut)&&academyLot4SeanceWindow_(s,'POINTAGE',ctx.settings)};
     }),
-    progression:progress, correctionAutorisee:ctx.correcteur,
+    progression:progress, correctionAutorisee:ctx.correcteur&&!['TERMINEE','TERMINE','ARCHIVEE'].includes(session.statut),
     paiement:'NON_VERIFIE',version:BOXY_ACADEMIE_LOT4_VERSION_};
 }
 
@@ -150,11 +150,11 @@ function academyLot4AuthorizeSession_(ctx,codeSession) {
   if(!(allowed[ctx.agent.role]||[]).includes(active[0][3]))throw new Error('SESSION_NON_AFFECTEE');
 }
 
-function academyLot4Session_(client,codeSession){
+function academyLot4Session_(client,codeSession,lecture){
   const list=academyLot3Sessions_(client);
   const s=list[codeSession];
   // Une session complète ou fermée aux inscriptions peut toujours donner cours.
-  if(!s||s.validation!=='VALIDEE'||!['OUVERTE','COMPLETE','FERMEE'].includes(s.statut))
+  if(!s||s.validation!=='VALIDEE'||!['OUVERTE','COMPLETE','FERMEE','EN_COURS',...(lecture?['TERMINEE','TERMINE','ARCHIVEE']:[])].includes(s.statut))
     throw new Error('SESSION_NON_VALIDEE');
   return s;
 }

@@ -24,7 +24,7 @@ function acad5Context_(token,permission,write){
   if(settings.ACADEMIE_FINANCES_LECTURE_ACTIVE!=='OUI' && (write || !BXCT_CORE_AUTH_isAdmin_(agent.role)))throw new Error('FINANCES_ACADEMIE_FERMEES');
   if(write && !BXCT_ENC_ACADEMY_WRITE_ACTIVE_)throw new Error('ENCAISSEMENTS_ACADEMIE_RECETTE_LECTURE_SEULE');
   if(write && ['OPERATIONS_ACTIVES','PAIEMENTS_ACTIFS','ACADEMIE_OPERATIONS_ACTIVES','ACADEMIE_ENCAISSEMENTS_ACTIFS','ACADEMIE_DEVIS_OFFICIELS_VALIDES'].some(k=>settings[k]!=='OUI'))throw new Error('FINANCES_ACADEMIE_FERMEES');
-  return {book,agent,settings,rights};
+  return {book,agent,settings,rights,write:write===true};
 }
 function acad5Table_(book,name,header,maxRows){
   const sheet=book.getSheetByName(name);photo6AssertHeader_(sheet,header);
@@ -45,7 +45,7 @@ function acad5ReadClientQuote_(ctx,code){
   const state=academyLot3Snapshot_(academyLot3ReadEvents_(ctx.book))[dossier.inscriptionId];
   if(!state||state.statut!=='CONFIRMEE'||state.formation!==dossier.formationCode)throw new Error('INSCRIPTION_NON_CONFIRMEE');
   const ss=academyLot3Sessions_(client),session=ss[state.session];
-  if(!session||!session.valid||session.formation!==dossier.formationCode)throw new Error('SESSION_NON_VALIDEE');
+  if(!session||session.formation!==dossier.formationCode||session.validation!=='VALIDEE'||(!session.valid&&(ctx.write!==false||!['OUVERTE','COMPLETE','FERMEE','EN_COURS','TERMINEE','TERMINE','ARCHIVEE'].includes(session.statut))))throw new Error('SESSION_NON_VALIDEE');
   // Direct exact code lookup, no writing to CLIENT.
   const source=client.getSheetByName('INSCRIPTIONS');if(!source||source.getLastRow()>25001)throw new Error('SOURCE_INDISPONIBLE');
   const head=source.getRange(1,1,1,18).getDisplayValues()[0];
@@ -67,6 +67,7 @@ function acad5ReadClientQuote_(ctx,code){
   const ref=String(snapshot.reference_devis),existing=acad5Table_(ctx.book,'DEVIS_ACADEMIE_CONTROL',ACA5_QUOTE_HEADER_,500)
     .filter(r=>r.inscription_id===dossier.inscriptionId);
   if(existing.length>1||existing.some(r=>String(r.reference_devis_client)!==ref||Number(r.montant_total_fcfa)!==net||r.code_session!==state.session))throw new Error('DEVIS_FIGE_DIFFERENT');
+  if(!session.valid&&!existing.length)throw new Error('SESSION_NON_VALIDEE');
   if(existing.length && existing[0].statut_devis!=='VALIDE')throw new Error('DEVIS_A_REVALIDER');
   // A fixed CONTROL quote takes precedence over newer CLIENT tariffs and schedules.
   if(existing.length){

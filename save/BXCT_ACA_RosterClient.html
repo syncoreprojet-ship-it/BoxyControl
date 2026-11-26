@@ -1,0 +1,19 @@
+<script>
+window.BXCT_ACA_ROSTER_UI=(()=>{
+ const $=id=>document.getElementById('bxct-aca-roster'+(id?'-'+id:''));let mode='',page=1,seq=0;
+ function reset(){seq++;mode='';page=1;$().hidden=true;$('query').value='';$('session').replaceChildren(new Option('Toutes les sessions',''));$('list').replaceChildren();$('status').textContent='';$('info').textContent='';$('prev').disabled=$('next').disabled=true;}
+ function load(){if(!mode)return;const n=++seq,t=idToken,k=mode;const s=$('session').value;$('list').replaceChildren();$('prev').disabled=$('next').disabled=true;$('status').textContent='Chargement…';
+  const done=r=>{if(n!==seq||t!==idToken||k!==mode||$('').hidden||document.getElementById('academy-lookup-panel').hidden)return;
+   if(!r?.ok){$('status').textContent=r?.message||'Liste indisponible.';return;}
+   const d=r.data;page=d.page;$('status').textContent=d.total+' dossier(s)';$('session').replaceChildren(new Option('Toutes les sessions',''),...d.sessions.map(x=>new Option(x.titre+' · '+x.code,x.code)));$('session').value=s;
+   d.items.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=x.code+' · '+x.titre+' · '+({EN_ATTENTE:'À traiter',LISTE_ATTENTE:'Liste d’attente',CONFIRMEE:'Confirmée'}[x.statut]||x.statut);b.onclick=()=>{document.getElementById('academy-lookup-code').value=x.code;document.getElementById('academy-lookup-form').requestSubmit();};$('list').append(b);});
+   $('info').textContent='Page '+page+' / '+Math.max(1,Math.ceil(d.total/10));$('prev').disabled=page<=1;$('next').disabled=page*10>=d.total;
+  };
+  if(previewMode){done({ok:true,data:{page:1,total:1,items:[{code:'BX.FOR.99',titre:'Formation (simulation)',statut:k==='inscriptions'?'EN_ATTENTE':'CONFIRMEE'}],sessions:[]}});return;}
+  if(!t){$('status').textContent='Reconnectez-vous.';return;}
+  google.script.run.withSuccessHandler(done).withFailureHandler(()=>done(null)).BXCT_ACA_ROSTER_LIST(t,{mode:k,page,q:$('query').value,session:s});
+ }
+ $('refresh').onclick=()=>{page=1;load();};$('session').onchange=()=>{page=1;load();};$('query').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();page=1;load();}};$('prev').onclick=()=>{page--;load();};$('next').onclick=()=>{page++;load();};
+ return {reset,open(k){reset();mode=k;$().hidden=false;$('title').textContent=({inscriptions:'Demandes à traiter',apprenants:'Apprenants confirmés',presences:'Apprenants à pointer'})[k];load();}};
+})();
+</script>

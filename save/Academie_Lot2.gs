@@ -130,6 +130,7 @@ function academyLookupMap_(client, row, col) {
     ficheValidee:Boolean(fiche && fiche.validation_fiche === 'VALIDEE'),
     sessionValidee:Boolean(sessionCohérente && session.validation_session === 'VALIDEE'),
     affectationEnAttente:!sessionCohérente,
+    sansSessionSource:sessionSource==='A_AFFECTER'||sessionSource==='',
     statutDemande:safeStatus,
     statutInscription:'EN_ATTENTE_CONTROL',
     statutPaiement:'NON_VERIFIE',

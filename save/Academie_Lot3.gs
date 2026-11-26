@@ -24,13 +24,14 @@ function controlAcademieEtatLot3(googleIdToken, codeSaisi) {
   const sessions = academyLot3Sessions_(client);
   const sessionCode = current && current.statut !== 'ANNULEE' ? current.session : dossier.codeSession;
   const session = sessions[sessionCode];
-  if (!session || session.formation !== dossier.formationCode) throw new Error('SESSION_INCOHERENTE');
+  const sansSession=!current&&!sessionCode&&dossier.sansSessionSource&&dossier.affectationEnAttente&&dossier.formationDansCatalogue;
+  if (!sansSession&&(!session || session.formation !== dossier.formationCode)) throw new Error('SESSION_INCOHERENTE');
   // Lecture privee auditée avant toute divulgation de fiche.
   academyLookupAudit_(ctx.book, ctx.agent.agentId, dossier.inscriptionId, 'ETAT_LOT3', code);
   return {ok:true, dossier, version:current ? current.version : 0,
     statut:current ? current.statut : 'EN_ATTENTE', sessionActuelle:sessionCode,
-    sessionCibleValidee:Boolean(session.valid),
-    capacite:academyLot3Stats_(state, session),
+    sessionCibleValidee:Boolean(session?.valid),
+    capacite:sansSession?{placesVerifiees:false}:academyLot3Stats_(state, session),
     sessionsDisponibles:Object.values(sessions).filter(s=>s.formation===dossier.formationCode)
       .map(s=>({code:s.code,titre:s.titre,cap: s.capacite,active:s.valid,
         attenteAutorisee:s.attenteAutorisee, date:s.date, placesVerifiees:false})),
@@ -243,9 +244,11 @@ function academyLot3Stats_(state,session) {
 
 function academyLot3Plan_(req,dossier,before,state,sessions) {
   const oldStat=before?before.statut:'EN_ATTENTE';
+  if(before&&['TERMINEE','TERMINE','ARCHIVEE'].includes(sessions[before.session]?.statut))throw new Error('SESSION_ARCHIVEE_PROTEGEE');
   if(oldStat==='ANNULEE'&&req.action!=='ANNULER')throw new Error('DOSSIER_ANNULE');
   if(req.action==='ANNULER'){
     if(oldStat==='ANNULEE')throw new Error('DEJA_ANNULE');
+    if(!(before?before.session:dossier.codeSession))throw new Error('AFFECTATION_REQUISE_AVANT_ANNULATION');
     return {statut:'ANNULEE',session:before?before.session:dossier.codeSession};
   }
   const target=sessions[req.sessionCible];
@@ -256,7 +259,7 @@ function academyLot3Plan_(req,dossier,before,state,sessions) {
   }else if(before && before.statut==='CONFIRMEE')throw new Error('DEJA_CONFIRMEE');
   else if(before && before.statut==='LISTE_ATTENTE'&&req.action==='LISTE_ATTENTE')throw new Error('DEJA_EN_ATTENTE');
   else if(before && before.session!==req.sessionCible)throw new Error('TRANSFERER_REQUIS');
-  else if(!before && dossier.codeSession!==req.sessionCible)throw new Error('TRANSFERT_REQUIS');
+  else if(!before && dossier.codeSession!==req.sessionCible && !(dossier.sansSessionSource&&dossier.affectationEnAttente&&dossier.formationDansCatalogue&&!dossier.codeSession))throw new Error('TRANSFERT_REQUIS');
   const stats=academyLot3Stats_(state,target);
   const status=req.action==='TRANSFERER'?req.transfertVers:
     req.action==='CONFIRMER'?'CONFIRMEE':'LISTE_ATTENTE';

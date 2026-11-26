@@ -1,0 +1,46 @@
+<style>
+#bxct-aca-session-ui{display:grid;gap:12px;min-width:0;margin:12px 0 20px;color:#195a36}#bxct-aca-session-ui [hidden]{display:none!important}#bxct-aca-session-ui .aca2-box{background:#fff;border:1px solid #dce8df;border-radius:16px;padding:14px;min-width:0;display:grid;gap:10px}#bxct-aca-session-ui .aca2-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}#bxct-aca-session-ui .aca2-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}#bxct-aca-session-ui label{display:grid;gap:5px;font-size:13px;font-weight:600;min-width:0}#bxct-aca-session-ui input,#bxct-aca-session-ui select,#bxct-aca-session-ui textarea{width:100%;min-width:0;box-sizing:border-box;font:inherit;font-size:16px;padding:10px;border:1px solid #cbded0;border-radius:9px;background:#fff;color:#195a36}#bxct-aca-session-ui button,#bxct-aca-roster button{min-height:44px;border:1px solid #cbded0;border-radius:10px;background:#f2f8f4;color:#195a36;padding:9px 13px;font:inherit;font-weight:650;cursor:pointer;max-width:100%;overflow-wrap:anywhere}#bxct-aca-session-ui button[aria-pressed=true],#bxct-aca-session-ui button.aca2-primary{background:#16834b;color:#fff}#bxct-aca-session-ui button:disabled,#bxct-aca-roster button:disabled{opacity:.55;cursor:not-allowed}#bxct-aca-session-ui .aca2-group{width:100%;text-align:left}#bxct-aca-session-ui .aca2-session{display:grid;gap:5px;padding:12px;background:#f7faf8;border-radius:12px;border:1px solid #e1ece4;overflow-wrap:anywhere}#bxct-aca-session-ui small,#bxct-aca-roster small{color:#587161;line-height:1.45}#bxct-aca-session-ui .aca2-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}#bxct-aca-session-ui .aca2-tabs button{padding:8px 3px;font-size:12px}#bxct-aca-hub-sessions>.academy-board{display:none!important}#bxct-aca-roster{display:grid;gap:8px;background:#fff;border:1px solid #dce8df;border-radius:14px;padding:12px;margin:10px 0;min-width:0}#bxct-aca-roster[hidden]{display:none!important}#bxct-aca-roster-list{display:grid;gap:6px}#bxct-aca-roster-list button{text-align:left}#bxct-aca-roster-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#bxct-aca-roster-query{min-width:0;flex:1;font-size:16px;padding:10px;border:1px solid #cbded0;border-radius:9px}#bxct-aca-roster-page{display:flex;justify-content:space-between;gap:6px;align-items:center;flex-wrap:wrap}
+</style>
+<section id="bxct-aca-session-ui" aria-label="Gestion des sessions">
+ <div class="aca2-row"><strong>Sessions de formation</strong><button id="bxct-aca-session-new" type="button" class="aca2-primary" disabled>+ Créer une session</button></div>
+ <p id="bxct-aca-session-msg" role="status" aria-live="polite">Chargement…</p>
+ <form id="bxct-aca-session-form" class="aca2-box" hidden autocomplete="off">
+  <strong>Nouvelle session — TEST</strong><small>Le titre est repris du catalogue. La session reste non publiée et à valider.</small>
+  <label>Formation<select name="formation" required></select></label>
+  <div class="aca2-fields">
+   <label>Date de début<input name="debut" type="date" required></label><label>Date de fin<input name="fin" type="date" required></label>
+   <label>Heure de début<input name="heureDebut" type="time"></label><label>Heure de fin<input name="heureFin" type="time"></label>
+   <label>Capacité maximale<input name="capacite" type="number" min="1" max="10000" step="1" required></label><label>Modalité<select name="modalite"><option value="PRESENTIEL">Présentiel</option><option value="DISTANCIEL">Distanciel</option><option value="HYBRIDE">Hybride</option></select></label>
+   <input name="formateur" type="hidden" value=""><small>Le formateur responsable est affecté depuis la session après sa création.</small><label>Lieu<input name="lieu" maxlength="130"></label>
+   <label>Statut initial<select name="statut"><option value="BROUILLON">Brouillon</option><option value="ANNONCEE">Planifiée (non publiée)</option></select></label>
+  </div><label>Notes internes<textarea name="notes" maxlength="250" rows="2"></textarea></label>
+  <div class="aca2-row"><button id="bxct-aca-session-cancel" type="button">Fermer</button><button id="bxct-aca-session-submit" type="submit" class="aca2-primary">Créer</button></div>
+ </form>
+ <form id="bxct-aca-session-changeform" class="aca2-box" hidden autocomplete="off">
+  <strong>Gérer une session</strong><small id="bxct-aca-session-changetitle"></small>
+  <label>Action<select name="action" required></select></label>
+  <div id="bxct-aca-session-changedates" class="aca2-fields" hidden><label>Nouvelle date de début<input name="debut" type="date"></label><label>Nouvelle date de fin<input name="fin" type="date"></label></div>
+  <label>Motif (obligatoire)<textarea name="motif" minlength="5" maxlength="250" rows="2" required></textarea></label>
+  <small>Gestion TEST uniquement. Clôture : traiter les demandes et la liste d’attente. Démarrage : séances validées et apprenants confirmés. Fin : date dépassée et pointages complets.</small>
+  <div class="aca2-row"><button id="bxct-aca-session-changeclose" type="button">Fermer</button><button id="bxct-aca-session-changesubmit" class="aca2-primary" type="submit">Enregistrer</button></div>
+ </form>
+ <form id="bxct-aca-session-seanceform" class="aca2-box" hidden autocomplete="off">
+  <strong>Ajouter une séance — TEST</strong><small id="bxct-aca-session-seancetitle"></small>
+  <div class="aca2-fields"><label>Date<input name="date" type="date" required></label><label>Heure de début<input name="debut" type="time" required></label><label>Heure de fin<input name="fin" type="time" required></label></div>
+  <label>Activité / cours<input name="activite" maxlength="200" required></label><label>Lieu<input name="lieu" maxlength="130"></label>
+  <small>Ajout avant démarrage uniquement pour une session déjà publiée. Une séance validée TEST ne peut pas être modifiée depuis cet écran. Aucun chevauchement ni séance hors dates de la session.</small>
+  <div class="aca2-row"><button id="bxct-aca-session-seanceclose" type="button">Fermer</button><button type="submit" class="aca2-primary">Ajouter la séance</button></div>
+ </form>
+ <form id="bxct-aca-session-assignform" class="aca2-box" hidden autocomplete="off">
+  <strong>Formateur responsable — TEST</strong><small id="bxct-aca-session-assigntitle"></small><label>Agent FORMATEUR actif<select name="agentId" required></select></label><small id="bxct-aca-session-assignstatus" role="status"></small>
+  <div class="aca2-row"><button id="bxct-aca-session-assignclose" type="button">Fermer</button><button type="submit" class="aca2-primary" disabled>Affecter</button></div>
+ </form>
+ <div class="aca2-box">
+  <div class="aca2-tabs" id="bxct-aca-session-tabs"><button type="button" data-session-group="actives" aria-pressed="true">En cours</button><button type="button" data-session-group="avenir" aria-pressed="false">À venir</button><button type="button" data-session-group="archives" aria-pressed="false">Archives</button></div>
+  <div class="aca2-fields"><label>Recherche<input id="bxct-aca-session-search" type="search" maxlength="120" placeholder="Formation ou identifiant"></label><label>Année<select id="bxct-aca-session-year"><option value="">Toutes</option></select></label></div>
+  <div class="aca2-row"><button id="bxct-aca-session-filter" type="button">Rechercher / actualiser</button></div>
+  <div id="bxct-aca-session-groups" class="aca2-box" style="padding:0;border:0"></div>
+  <div id="bxct-aca-session-page" class="aca2-row" hidden><button type="button" id="bxct-aca-session-prev">Précédent</button><small id="bxct-aca-session-pageinfo"></small><button type="button" id="bxct-aca-session-next">Suivant</button></div>
+ </div>
+ <small>Les confirmations et listes d'attente proviennent du journal CONTROL. Une session non validée ne permet pas de confirmer une place.</small>
+</section>

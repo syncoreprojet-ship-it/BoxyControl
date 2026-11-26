@@ -10,14 +10,14 @@ window.BXCT_ACA_HUB_UI=(()=>{
  const heading=get('academy-lookup-panel').querySelector('.academy-lookup-heading h2');
  const eyebrow=get('academy-lookup-panel').querySelector('.academy-lookup-heading .academy-eyebrow');
  const titles={inscriptions:'Inscriptions',apprenants:'Apprenants',presences:'Présences'};
- function reset(){root.dataset.acaSpace='home';header.hidden=true;catalogue.hidden=true;sessions.hidden=true;heading.textContent='Retrouver un participant';eyebrow.textContent='BOXY ACADÉMIE · INSCRIPTIONS';sync();}
+ function reset(){window.BXCT_ACA_FINAL_UI?.reset();window.BXCT_ACA_SESSION_UI?.reset();window.BXCT_ACA_ROSTER_UI?.reset();root.dataset.acaSpace='home';header.hidden=true;catalogue.hidden=true;sessions.hidden=true;heading.textContent='Retrouver un participant';eyebrow.textContent='BOXY ACADÉMIE · INSCRIPTIONS';sync();}
  function sync(){
   for(const b of cards){const k=b.dataset.acaModule;const s=b.querySelector('.aca-hub-state');
    let closed=false;
    if(k==='encaissements')closed=finance.disabled;
    else if(k in titles)closed=lookup.disabled||(k==='presences'&&!acad4CanRead);
    // Catalogue and sessions may be opened to read their existing access status.
-   if(k==='attestations'||k==='statistiques')continue;
+   if(k==='attestations'||k==='statistiques')closed=!academyPilotageAccess;
    b.disabled=closed;s.hidden=!closed;s.textContent=closed?'Accès fermé':'';
   }
  }
@@ -29,11 +29,12 @@ window.BXCT_ACA_HUB_UI=(()=>{
   root.dataset.acaSpace=k;
   if(k in titles){
    heading.textContent=titles[k]+' · Rechercher un participant';eyebrow.textContent='BOXY ACADÉMIE · '+titles[k].toUpperCase();
-   lookup.click();return;
+   lookup.click();window.BXCT_ACA_ROSTER_UI.open(k);return;
   }
-  header.hidden=false;get('bxct-aca-hub-title').textContent=k==='catalogue'?'Catalogue':'Sessions';
+  header.hidden=false;get('bxct-aca-hub-title').textContent=({catalogue:'Catalogue',sessions:'Sessions',attestations:'Attestations',statistiques:'Statistiques'})[k]||'';
   if(k==='catalogue'){catalogue.hidden=false;get('bxct-aca-hub-catalogue-note').hidden=!get('bxct-form-admin').hidden;}
-  if(k==='sessions'){sessions.hidden=false;academyLoad();}
+  if(k==='sessions'){sessions.hidden=false;window.BXCT_ACA_SESSION_UI.open();}
+  if(k==='attestations'||k==='statistiques')window.BXCT_ACA_FINAL_UI.open(k);
   get('bxct-aca-hub-title').focus();
  }
  for(const b of cards)b.addEventListener('click',()=>open(b.dataset.acaModule));
