@@ -1,0 +1,28 @@
+<style>
+/* v7.0.14-rc1 — navigation UI only; no data or permission authority. */
+#academy-home-content[data-aca-space]:not([data-aca-space="home"]) > :is(.academy-hero,.academy-stats,#academy-message,#bxct-aca-hub-grid){display:none!important}
+#academy-home-content.academy-lookup-mode > #academy-lookup-panel{display:block}
+#academy-home-content #academy-lookup-panel[hidden]{display:none!important}
+#bxct-aca-hub-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:16px 0 24px}
+#bxct-aca-hub-grid .aca-hub-card{display:flex;align-items:center;text-align:left;gap:12px;min-width:0;min-height:104px;width:100%;padding:15px;border:1px solid #dce8df;border-radius:18px;background:#fff;color:#195a36;box-shadow:0 3px 12px #163b2310;cursor:pointer;font:inherit}
+#bxct-aca-hub-grid .aca-hub-card:hover:not(:disabled){border-color:var(--aca-color);background:#fbfefc}
+#bxct-aca-hub-grid .aca-hub-card:disabled{cursor:not-allowed;opacity:.72}
+#bxct-aca-hub-grid .aca-hub-icon{display:grid;place-items:center;flex:0 0 48px;height:48px;border-radius:14px;background:var(--aca-bg);color:var(--aca-color)}
+#bxct-aca-hub-grid .aca-hub-icon svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#bxct-aca-hub-grid .aca-hub-text{min-width:0;flex:1;display:grid;gap:5px;overflow-wrap:anywhere}
+#bxct-aca-hub-grid strong{font-size:15px;line-height:1.25}
+#bxct-aca-hub-grid small{font-size:12px;line-height:1.35;color:#526b5d}
+#bxct-aca-hub-grid .aca-hub-state{font-size:11px;color:#795519;font-weight:600}
+#bxct-aca-hub-grid .aca-hub-arrow{width:15px;height:15px;flex:none;color:#627f6b;fill:none;stroke:currentColor;stroke-width:1.8}
+#bxct-aca-hub-header{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:14px 0}
+#bxct-aca-hub-header h2{font-size:22px;color:#195a36;line-height:1.2;margin:0}
+#bxct-aca-hub-header button{min-height:44px}
+#bxct-aca-hub-catalogue,#bxct-aca-hub-sessions{min-width:0}
+#bxct-aca-hub-grid [data-aca-module="catalogue"],#bxct-aca-hub-grid [data-aca-module="encaissements"]{--aca-color:#16834b;--aca-bg:#e1f5e9}
+#bxct-aca-hub-grid [data-aca-module="inscriptions"],#bxct-aca-hub-grid [data-aca-module="statistiques"]{--aca-color:#3068bd;--aca-bg:#e6efff}
+#bxct-aca-hub-grid [data-aca-module="sessions"],#bxct-aca-hub-grid [data-aca-module="attestations"]{--aca-color:#8651b8;--aca-bg:#f2e7fc}
+#bxct-aca-hub-grid [data-aca-module="apprenants"]{--aca-color:#087e83;--aca-bg:#def3f3}
+#bxct-aca-hub-grid [data-aca-module="presences"]{--aca-color:#a15d12;--aca-bg:#fff0dc}
+@media(min-width:600px){#bxct-aca-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1250px){#bxct-aca-hub-grid{grid-template-columns:repeat(4,minmax(0,1fr))}#bxct-aca-hub-grid .aca-hub-card{align-items:flex-start;flex-wrap:wrap;min-height:155px}#bxct-aca-hub-grid .aca-hub-text{flex:1 0 100%;order:2}#bxct-aca-hub-grid .aca-hub-arrow{margin-left:auto}}
+</style>

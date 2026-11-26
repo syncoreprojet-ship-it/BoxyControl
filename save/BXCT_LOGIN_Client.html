@@ -1,0 +1,58 @@
+<!-- BOXY CONTROL LOGIN | Controleur UI autonome, sans stockage navigateur -->
+<script>
+'use strict';
+function bxLoginForme_(change){
+  qs('bx-login-heading').textContent=change?'Premier accès':'Connexion';
+  qs('bx-login-subtitle').textContent=change?'Créez votre mot de passe':'Accès à votre espace équipe';
+  qs('bx-login-form').hidden=Boolean(change);
+  qs('bx-login-change').hidden=!change;
+  qs('login-status').hidden=true;
+}
+function bxLoginMessage_(code){
+  const msgs={LOGIN_NON_INSTALLE:'Login non activé. Dans Paramètres, définissez le mot de passe admin puis cliquez sur Activer le login.',
+    CONNEXION_REFUSEE:'Identifiant ou mot de passe incorrect, ou accès temporairement limité.',
+    MOT_DE_PASSE_TROP_FAIBLE:'Mot de passe trop faible. Utilisez 12 caractères, une majuscule, une minuscule, un chiffre et un symbole.',
+    ANCIEN_MDP_INVALIDE:'Le mot de passe provisoire est incorrect.',
+    NOUVEAU_MDP_IDENTIQUE:'Choisissez un nouveau mot de passe différent.',
+    CHANGEMENT_REFUSE:'Changement impossible. Réessayez ou contactez votre responsable.'};
+  return msgs[code]||'Opération indisponible. Veuillez réessayer.';
+}
+let bxLoginBusy=false;
+function bxLoginDone_(res){
+  bxLoginBusy=false;qs('bx-login-submit').disabled=false;
+  qs('bx-login-password').value='';
+  if(!res?.ok||!res.data?.token){idToken=null;showStatus(bxLoginMessage_(res?.code),'error');return;}
+  idToken=res.data.token;
+  if(res.data.mustChange){bxLoginForme_(true);qs('bx-old-password').focus();return;}
+  if(!res.data.bootstrap?.ok){showStatus('Profil temporairement indisponible. Réessayez.','error');return;}
+  loginSuccess(res.data.bootstrap);
+}
+qs('bx-login-form').addEventListener('submit',ev=>{
+  ev.preventDefault();if(bxLoginBusy)return;
+  const user=qs('bx-login-id').value.trim(),password=qs('bx-login-password').value;
+  if(!user||!password)return;
+  if(!window.google?.script?.run){showStatus('Connexion serveur indisponible. Ouvrez le déploiement Apps Script.','error');return;}
+  bxLoginBusy=true;qs('bx-login-submit').disabled=true;showStatus('Vérification sécurisée du compte…');
+  google.script.run.withSuccessHandler(bxLoginDone_).withFailureHandler(()=>{
+    bxLoginBusy=false;qs('bx-login-submit').disabled=false;qs('bx-login-password').value='';
+    showStatus('Connexion temporairement indisponible.','error');
+  }).BXCT_LOGIN_API_ouvrir(user,password);
+});
+qs('bx-login-change').addEventListener('submit',ev=>{
+  ev.preventDefault();if(bxLoginBusy)return;
+  const old=qs('bx-old-password').value,pw=qs('bx-new-password').value;
+  if(pw!==qs('bx-new-password-confirm').value){showStatus('Les deux nouveaux mots de passe ne correspondent pas.','error');return;}
+  if(!idToken){showStatus('Session expirée. Recommencez la connexion.','error');return;}
+  if(!window.google?.script?.run){showStatus('Serveur indisponible.','error');return;}
+  bxLoginBusy=true;qs('bx-change-submit').disabled=true;showStatus('Enregistrement sécurisé…');
+  google.script.run.withSuccessHandler(r=>{
+    bxLoginBusy=false;qs('bx-change-submit').disabled=false;
+    qs('bx-old-password').value='';qs('bx-new-password').value='';qs('bx-new-password-confirm').value='';
+    if(!r?.ok||!r.data?.bootstrap?.ok){showStatus(bxLoginMessage_(r?.code),'error');return;}
+    idToken=r.data.token;bxLoginForme_(false);loginSuccess(r.data.bootstrap);
+  }).withFailureHandler(()=>{bxLoginBusy=false;qs('bx-change-submit').disabled=false;showStatus('Enregistrement impossible.','error');})
+    .BXCT_LOGIN_API_changerMotDePasse(idToken,old,pw);
+});
+
+qs('bx-login-cancel').addEventListener('click',logout);
+</script>

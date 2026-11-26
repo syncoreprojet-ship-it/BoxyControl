@@ -1,0 +1,16 @@
+<style>
+#bxct-enc-panel{min-width:0;overflow-wrap:anywhere;padding-bottom:env(safe-area-inset-bottom,0px)}
+#bxct-enc-panel .enc-controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;align-items:center}
+#bxct-enc-panel select,#bxct-enc-panel button{max-width:100%;min-height:44px;white-space:normal}
+#bxct-enc-panel .enc-line{border:1px solid #e2efe8;border-radius:12px;padding:12px;margin:8px 0;min-width:0;background:white}
+</style>
+<section id="bxct-enc-panel" data-panel="enc-general" hidden>
+ <button type="button" data-nav="home" class="secondary-action">Retour</button>
+ <h2>Encaissements généraux</h2>
+ <p>Registre unique · Lecture seule. Aucun nouvel encaissement, remboursement ou transfert depuis cet espace.</p>
+ <p>Soldes : dossiers avec historique et devis ACADÉMIE figés validés dans CONTROL. Les autres dossiers sans mouvement ne sont pas inclus.</p>
+ <div class="enc-controls"><label for="bxct-enc-filter">Prestation</label><select id="bxct-enc-filter"><option value="TOUTES">Toutes</option><option value="PHOTO">PHOTO</option><option value="FORMATION">ACADÉMIE</option></select><button type="button" id="bxct-enc-refresh" class="secondary-action">Actualiser</button></div>
+ <p id="bxct-enc-status" role="status" aria-live="polite"></p>
+ <div id="bxct-enc-summary"></div><h3>Historique des transactions</h3><div id="bxct-enc-history"></div>
+ <div class="enc-controls"><button type="button" id="bxct-enc-prev" class="secondary-action" disabled>Précédent</button><button type="button" id="bxct-enc-next" class="secondary-action" disabled>Suivant</button></div>
+</section>

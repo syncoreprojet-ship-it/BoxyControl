@@ -1,0 +1,26 @@
+<!-- BOXY CONTROL LOGIN | Vue compacte du module -->
+      <div class="bx-login-stage">
+        <div class="auth-card bx-login-mini" id="login-card">
+          <div class="bx-login-heading">
+            <span class="bx-login-symbol" aria-hidden="true"><svg><use href="#i-shield"/></svg></span>
+            <div>
+              <h1 id="bx-login-heading">Connexion</h1>
+              <p id="bx-login-subtitle">Accès à votre espace équipe</p>
+            </div>
+          </div>
+          <form id="bx-login-form" class="bx-login" autocomplete="on">
+            <div><label for="bx-login-id">Identifiant</label><input id="bx-login-id" name="username" type="text" maxlength="32" autocomplete="username" placeholder="Ex. admin" required></div>
+            <div><label for="bx-login-password">Mot de passe</label><input id="bx-login-password" name="password" type="password" maxlength="256" autocomplete="current-password" placeholder="Mot de passe" required></div>
+            <button id="bx-login-submit" type="submit"><svg><use href="#i-login"/></svg><span>Se connecter</span></button>
+          </form>
+          <form id="bx-login-change" class="bx-login" autocomplete="off" hidden>
+            <div><label for="bx-old-password">Mot de passe provisoire</label><input id="bx-old-password" name="old-password" type="password" autocomplete="current-password" required></div>
+            <div><label for="bx-new-password">Nouveau mot de passe</label><input id="bx-new-password" name="new-password" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></div>
+            <div><label for="bx-new-password-confirm">Confirmer le mot de passe</label><input id="bx-new-password-confirm" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></div>
+            <p class="bx-login-notice">12 caractères minimum : majuscule, minuscule, chiffre et symbole.</p>
+            <button id="bx-change-submit" type="submit">Enregistrer</button>
+            <button id="bx-login-cancel" type="button" class="bx-login-back">Retour à la connexion</button>
+          </form>
+          <div id="login-status" class="statusbox" role="status" aria-live="polite" hidden></div>
+        </div>
+      </div>

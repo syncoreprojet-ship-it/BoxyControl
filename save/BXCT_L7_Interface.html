@@ -1,0 +1,310 @@
+<!-- BOXY CONTROL | Lot 7/8 | fiche de reservation et traitement anticipe -->
+<!-- Dependance publique UI: evenement cancelable bxct:l6:dossier-select du Lot 6. -->
+<div id="l7-overlay" class="l7-overlay" hidden>
+  <section id="l7-dialog" class="l7-dialog" role="dialog" aria-modal="true" aria-labelledby="l7-title" aria-describedby="l7-subtitle" tabindex="-1">
+    <header class="l7-header">
+      <div class="l7-header-caption"><span class="l7-eyebrow">BOXY CONTROL · RÉSERVATIONS</span><h2 id="l7-title">Fiche de réservation</h2><p id="l7-subtitle">Consulter et préparer le traitement du dossier.</p></div>
+      <button id="l7-close" type="button" class="l7-close" aria-label="Fermer la fiche">✕</button>
+    </header>
+    <div class="l7-body" id="l7-body" tabindex="0">
+      <div id="l7-demo-strip" class="l7-demo-strip" hidden>APERÇU LOCAL — dossier entièrement fictif. Aucune action n'est enregistrée.</div>
+      <div id="l7-connection-strip" class="l7-connection-strip" hidden>Liaison BOXY CLIENT non connectée. Les informations détaillées ne sont pas disponibles.</div>
+      <div class="l7-identity">
+        <div><span class="l7-smalllabel">CODE BOXY</span><strong id="l7-ref" class="l7-ref">—</strong></div>
+        <span id="l7-state" class="l7-state">—</span>
+      </div>
+      <div class="l7-service"><span class="l7-smalllabel">PRESTATION</span><h3 id="l7-service">—</h3></div>
+      <div class="l7-section-title">Informations du dossier</div>
+      <dl class="l7-facts">
+        <div><dt>Client</dt><dd id="l7-client">—</dd></div>
+        <div><dt>Téléphone / WhatsApp</dt><dd id="l7-phone">—</dd></div>
+        <div><dt>E-mail</dt><dd id="l7-email">—</dd></div>
+        <div><dt>Date prévue</dt><dd id="l7-date">—</dd></div>
+        <div><dt>Heure</dt><dd id="l7-time">—</dd></div>
+        <div><dt>Demande reçue</dt><dd id="l7-created">—</dd></div>
+      </dl>
+      <p id="l7-date-hint" class="l7-hint" hidden>La date n'est pas encore fixée. L'agent peut rappeler le client pour convenir d'un rendez-vous.</p>
+      <p id="l7-detail-note" class="l7-description" hidden></p>
+      <div class="l7-section-title l7-section-reminder">Suivi des rappels</div>
+      <p class="l7-intro">Contactez le client avant son rendez-vous, puis notez le résultat de l'échange.</p>
+      <div id="l7-rappel-history" class="l7-history" aria-live="polite"><p>Aucun rappel enregistré.</p></div>
+      <form id="l7-rappel-form" class="l7-form">
+        <label for="l7-rappel-result">Résultat du contact</label>
+        <select id="l7-rappel-result" required>
+          <option value="APPEL_EFFECTUE">Appel effectué</option>
+          <option value="SANS_REPONSE">Sans réponse</option>
+          <option value="A_RAPPELER">À rappeler</option>
+          <option value="MESSAGE_ENVOYE">Message envoyé</option>
+        </select>
+        <label for="l7-rappel-note">Note de suivi (facultative)</label>
+        <textarea id="l7-rappel-note" rows="2" maxlength="300" placeholder="Ex. : le client souhaite être rappelé demain."></textarea>
+        <button type="submit" id="l7-rappel-submit" class="l7-secondary">Noter le rappel</button>
+      </form>
+      <section id="l7-decision-panel" class="l7-decision-panel" hidden aria-labelledby="l7-decision-title">
+        <div class="l7-section-title" id="l7-decision-title">Décision</div>
+        <form id="l7-decision-form">
+          <div id="l7-confirm-fields" hidden>
+            <p class="l7-intro">Choisissez pourquoi la réservation est confirmée. La présence et les paiements restent des contrôles distincts.</p>
+            <label for="l7-confirm-reason">Motif de confirmation</label>
+            <select id="l7-confirm-reason">
+              <option value="CONFIRMATION_TELEPHONE">Client contacté et rendez-vous confirmé</option>
+              <option value="ACOMPTE_VERIFIE">Acompte reçu et vérifié séparément</option>
+              <option value="PRESENCE_SUR_PLACE">Client présent sur place (pointage séparé)</option>
+            </select>
+            <label for="l7-confirm-note">Note facultative</label>
+            <textarea id="l7-confirm-note" rows="2" maxlength="300" placeholder="Précision utile pour l'équipe."></textarea>
+          </div>
+          <div id="l7-cancel-fields" hidden>
+            <p class="l7-intro">Cette opération annulera la réservation. Une réattribution du code peut intervenir plus tard selon les règles BOXY CLIENT.</p>
+            <label for="l7-cancel-reason">Motif de l'annulation (obligatoire)</label>
+            <textarea id="l7-cancel-reason" rows="3" maxlength="300" minlength="8" placeholder="Ex. : le client a demandé l'annulation par téléphone."></textarea>
+            <label class="l7-check"><input id="l7-cancel-agree" type="checkbox"><span>Je confirme avoir vérifié le dossier et le motif de l'annulation.</span></label>
+          </div>
+          <div class="l7-decision-actions">
+            <button type="button" id="l7-decision-back" class="l7-secondary">Revenir</button>
+            <button type="submit" id="l7-decision-submit" class="l7-primary">Valider</button>
+          </div>
+        </form>
+      </section>
+      <div id="l7-feedback" class="l7-feedback" role="status" aria-live="polite" hidden></div>
+      <p class="l7-caution">Aucune confirmation de réservation ne signifie qu'un paiement a été encaissé ou qu'un pointage a été effectué.</p>
+    </div>
+    <footer class="l7-footer">
+      <div id="l7-live-hint" class="l7-live-hint">Actions non connectées avant le Lot 8.</div>
+      <div class="l7-footer-buttons">
+        <button id="l7-confirm" type="button" class="l7-primary" disabled>Confirmer</button>
+        <button id="l7-cancel" type="button" class="l7-danger" disabled>Annuler</button>
+      </div>
+    </footer>
+  </section>
+</div>
+<style>
+/* Lot 7, styles bornes sous .l7 / #l7 sans effet de bord. */
+#l7-overlay[hidden],#l7-decision-panel[hidden],#l7-confirm-fields[hidden],#l7-cancel-fields[hidden],#l7-feedback[hidden]{display:none!important}
+.l7-overlay{position:fixed;inset:0;z-index:100020;display:flex;align-items:center;justify-content:center;padding:16px;background:#09291d9c;overscroll-behavior:contain}
+.l7-dialog{width:min(100%,620px);max-width:100%;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;min-height:0;border-radius:23px;background:#fff;border:1px solid #dcece1;box-shadow:0 25px 65px #05271949;overflow:hidden;color:#113d2e}
+.l7-header{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:19px 20px 16px;border-bottom:1px solid #e6eee8;flex-shrink:0;background:#fbfefb}
+.l7-header-caption{min-width:0}
+.l7-eyebrow,.l7-smalllabel{display:block;font-size:10px;font-weight:800;letter-spacing:1px;color:#4e8a68}
+.l7-header h2{font-size:20px;font-weight:850;margin:6px 0 3px;color:#084c34;line-height:1.3}
+.l7-header p{font-size:11px;color:#709080;line-height:1.4}
+.l7-close{flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;border:1px solid #dbe9dd;background:#f4faf6;border-radius:12px;color:#236d4a;font-size:17px}
+.l7-body{min-height:0;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:17px 20px 19px;scrollbar-gutter:stable}
+.l7-demo-strip,.l7-connection-strip{font-size:11px;font-weight:700;padding:11px 12px;border-radius:11px;margin-bottom:13px;line-height:1.55}
+.l7-demo-strip{background:#fff7e9;color:#845417;border:1px solid #eed3a7}
+.l7-connection-strip{background:#f7f7f3;color:#536b5d;border:1px solid #dce4da}
+.l7-identity{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}
+.l7-ref{display:block;font-size:22px;line-height:1.35;overflow-wrap:anywhere;margin-top:4px;color:#0a7649}
+.l7-state{font-size:11px;font-weight:800;border-radius:999px;background:#fff7e5;color:#905f16;padding:7px 10px;max-width:48%;text-align:right}
+.l7-state.is-confirmed{background:#e5f7e9;color:#18694c}.l7-state.is-cancelled{background:#fcebea;color:#a34343}
+.l7-service{background:#eff9f1;border:1px solid #d6ecdd;border-radius:14px;padding:12px 13px}
+.l7-service h3{font-size:16px;font-weight:800;line-height:1.4;margin-top:4px;overflow-wrap:anywhere}
+.l7-section-title{font-size:13px;font-weight:850;color:#155d3f;margin:17px 0 9px}
+.l7-facts{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0}
+.l7-facts>div{background:#fcfefc;border:1px solid #e2ece5;border-radius:11px;padding:10px;min-width:0}
+.l7-facts dt{font-size:10px;color:#7a9582;margin-bottom:4px}
+.l7-facts dd{font-size:12px;font-weight:750;line-height:1.45;color:#234836;overflow-wrap:anywhere;margin:0}
+.l7-hint,.l7-intro,.l7-caution,.l7-description{font-size:11px;line-height:1.6;color:#658370}
+.l7-hint{background:#fbf8ed;padding:10px;border-radius:9px;margin-top:10px;color:#886320}
+.l7-description{margin-top:9px}
+.l7-history{display:grid;gap:8px;max-width:100%}
+.l7-history>p{font-size:11px;color:#759080;padding:12px;background:#f7fbf7;border-radius:9px}
+.l7-history-entry{border:1px solid #e0ebe3;border-radius:11px;padding:10px;background:#fcfefc}
+.l7-history-entry strong{display:block;font-size:11px;color:#24553e}
+.l7-history-entry small{display:block;font-size:10px;color:#7b9683;margin-top:3px}
+.l7-history-entry p{font-size:11px;color:#466c55;margin-top:6px;overflow-wrap:anywhere;white-space:pre-wrap}
+.l7-form{display:grid;gap:8px;padding:13px;margin-top:11px;background:#f8fcf9;border:1px solid #dbece0;border-radius:13px}
+.l7-form label,.l7-decision-panel label:not(.l7-check){font-size:11px;color:#2a6044;font-weight:700}
+.l7-form select,.l7-form textarea,.l7-decision-panel select,.l7-decision-panel textarea{border:1px solid #d7e5db;border-radius:10px;padding:10px 11px;font:inherit;font-size:12px;color:#193f2c;background:#fff;outline-offset:2px;resize:vertical;max-width:100%;width:100%;min-height:39px}
+.l7-form textarea,.l7-decision-panel textarea{min-height:72px}
+.l7-form button{justify-self:start;margin-top:3px}
+.l7-primary,.l7-secondary,.l7-danger{border:1px solid transparent;border-radius:12px;padding:11px 15px;font-size:12px;font-weight:800;line-height:1.3;min-height:42px;white-space:normal;text-align:center}
+.l7-primary{background:#06794e;color:white;border-color:#06794e}
+.l7-danger{background:#fff1f0;color:#a52626;border-color:#eac6c3}
+.l7-secondary{background:#fff;color:#176949;border-color:#c5e0cd}
+.l7-primary:disabled,.l7-danger:disabled,.l7-secondary:disabled{opacity:.46;cursor:not-allowed}
+.l7-primary:not(:disabled):hover{background:#056442}.l7-danger:not(:disabled):hover{background:#ffe6e3}
+.l7-decision-panel{margin-top:17px;padding:14px;border:1px solid #b9e0c6;border-radius:13px;background:#fcfefc}
+.l7-decision-panel label:not(.l7-check){display:block;margin:11px 0 6px}
+.l7-decision-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:9px;margin-top:13px}
+.l7-check{display:flex;align-items:flex-start;gap:9px;margin-top:12px;font-size:11px;font-weight:650;color:#335b44;line-height:1.5}
+.l7-check input{flex:0 0 auto;margin-top:3px}
+.l7-feedback{border-radius:11px;padding:11px;margin-top:14px;background:#e8f6ed;color:#1c6747;font-size:11px;line-height:1.55;border:1px solid #cae4d2}
+.l7-feedback.is-error{background:#fff0ef;border-color:#f1d0cc;color:#a53d35}
+.l7-caution{margin-top:13px;padding:10px 0 0;border-top:1px solid #edf3ec}
+.l7-footer{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:white;border-top:1px solid #e1eee6}
+.l7-footer-buttons{display:flex;gap:8px;flex-shrink:0}
+.l7-live-hint{font-size:10px;color:#668373;line-height:1.5;min-width:0}
+@media(max-width:430px){.l7-overlay{padding:12px}.l7-dialog{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);border-radius:18px}.l7-header{padding:14px}.l7-body{padding:13px}.l7-footer{padding:11px 13px;flex-direction:column;align-items:stretch;gap:8px}.l7-footer-buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px}.l7-header h2{font-size:18px}.l7-ref{font-size:20px}.l7-facts{gap:7px}.l7-facts>div{padding:9px}.l7-live-hint{font-size:10px;text-align:center}}
+@media(max-width:340px){.l7-facts{grid-template-columns:1fr}.l7-ref{font-size:19px}.l7-state{max-width:50%}}
+</style>
+<script>
+/** BOXY CONTROL Lot 7 : composant UI autonome, sans donnees reelles en Preview. */
+window.BXCT_L7 = (() => {
+  'use strict';
+  const E=id=>document.getElementById(id);
+  const services={SHOOTING:'Shooting Photo',FORMATION:'Formation Création de contenu',
+    MARIAGE:'Mariage & cérémonie',CASTING:'Casting & talents',VIDEO:'Production audiovisuelle',
+    CONTENU:'Création de contenus',STUDIO:'Retouche & studio',EVENT:'Événements BOXY'};
+  const labels={EN_ATTENTE:'En attente',CONFIRMEE:'Confirmée',ANNULEE:'Annulée'};
+  const reminderLabels={APPEL_EFFECTUE:'Appel effectué',SANS_REPONSE:'Sans réponse',
+    A_RAPPELER:'À rappeler',MESSAGE_ENVOYE:'Message envoyé'};
+  const demoContacts={
+    'DEMO-01':{nom:'Aïssata D. (fictif)',tel:'Téléphone fictif',email:'demo1@example.invalid',created:'22/11/2026',note:'Séance photo · rendez-vous à confirmer avec le client.'},
+    'DEMO-02':{nom:'Karim S. (fictif)',tel:'Téléphone fictif',email:'demo2@example.invalid',created:'21/11/2026',note:'Shooting portrait en studio.'},
+    'DEMO-03':{nom:'Mariam T. (fictif)',tel:'Téléphone fictif',email:'demo3@example.invalid',created:'22/11/2026',note:'Inscription Formation, session à affecter.'},
+    'DEMO-04':{nom:'Oumar C. (fictif)',tel:'Téléphone fictif',email:'demo4@example.invalid',created:'22/11/2026',note:'Mariage : date envisagée à confirmer.'},
+    'DEMO-05':{nom:'Fatou M. (fictif)',tel:'Téléphone fictif',email:'demo5@example.invalid',created:'20/11/2026',note:'Casting — dossier annulé.'},
+    'DEMO-06':{nom:'Ibrahim B. (fictif)',tel:'Téléphone fictif',email:'demo6@example.invalid',created:'21/11/2026',note:'Demande de réalisation vidéo.'},
+    'DEMO-07':{nom:'Amadou K. (fictif)',tel:'Téléphone fictif',email:'demo7@example.invalid',created:'21/11/2026',note:'Contenus pour réseaux sociaux.'},
+    'DEMO-08':{nom:'Awa D. (fictif)',tel:'Téléphone fictif',email:'demo8@example.invalid',created:'21/11/2026',note:'Retouche de photographies.'},
+    'DEMO-09':{nom:'Binta S. (fictif)',tel:'Téléphone fictif',email:'demo9@example.invalid',created:'21/11/2026',note:'Événement à organiser.'}
+  };
+  let token=null,allowed=false,demo=false,active=null,reminders=[],revision=0,lastFocused=null,bodyOverflow='';
+  let mode='',busy=false;
+  const set=(id,value)=>{E(id).textContent=String(value===undefined||value===null||value===''?'—':value);};
+  function setFeedback(message,err){const box=E('l7-feedback');box.hidden=!message;box.textContent=message||'';box.classList.toggle('is-error',Boolean(err));}
+  function dateText(date){if(!date)return 'À convenir';const d=new Date(date+'T12:00:00');return isNaN(d.getTime())?'À convenir':d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});}
+  function renderHistory(){const box=E('l7-rappel-history');box.replaceChildren();if(!reminders.length){const p=document.createElement('p');p.textContent=demo?'Aucun rappel enregistré dans cette démonstration.':'Aucun rappel enregistré.';box.append(p);return;}
+    reminders.forEach(item=>{const row=document.createElement('div');row.className='l7-history-entry';const s=document.createElement('strong');s.textContent=reminderLabels[item.resultat]||item.resultat;const t=document.createElement('small');t.textContent=item.date+(demo?' · Démonstration uniquement':item.agentId?' · '+item.agentId:'');row.append(s,t);if(item.note){const p=document.createElement('p');p.textContent=item.note;row.append(p);}box.append(row);});
+  }
+  function render(){if(!active)return;set('l7-ref',active.codePublic);set('l7-service',services[active.codePrestation]);set('l7-state',labels[active.statut]||'Inconnu');
+    const badge=E('l7-state');badge.className='l7-state'+(active.statut==='CONFIRMEE'?' is-confirmed':active.statut==='ANNULEE'?' is-cancelled':'');
+    set('l7-client',active.nomClient);set('l7-phone',active.telephone);set('l7-email',active.email);
+    set('l7-date',dateText(active.datePrevue));set('l7-time',active.heurePrevue||'À convenir');set('l7-created',active.creeLe);
+    E('l7-date-hint').hidden=Boolean(active.datePrevue);
+    const note=E('l7-detail-note');note.hidden=!active.note;note.textContent=active.note||'';
+    const enabled=(demo||active.sourceReady===true)&&!busy;
+    E('l7-confirm').disabled=!enabled||active.statut!=='EN_ATTENTE'||(!demo&&active.codePrestation==='FORMATION'&&(!active.codeSession||active.codeSession==='A_AFFECTER'));
+    E('l7-cancel').disabled=!enabled||active.statut==='ANNULEE';
+    E('l7-rappel-submit').disabled=!enabled||active.statut==='ANNULEE';
+    E('l7-live-hint').textContent=demo?'Actions simulées — aucun dossier réel modifié.':(active.sourceReady?'Actions vérifiées par BOXY CLIENT. Un acompte ne vaut pas paiement enregistré.':'Actions fermées — connexion sécurisée non active.');
+    E('l7-demo-strip').hidden=!demo;
+    E('l7-connection-strip').hidden=demo||active.sourceReady===true;
+    renderHistory();
+  }
+  function choose(modeNext){if(!active||(!demo&&!active.sourceReady)||busy)return;mode=modeNext;setFeedback('',false);
+    E('l7-decision-panel').hidden=false;
+    E('l7-confirm-fields').hidden=mode!=='CONFIRMER';E('l7-cancel-fields').hidden=mode!=='ANNULER';
+    set('l7-decision-title',mode==='ANNULER'?'Annuler la réservation':'Confirmer la réservation');
+    set('l7-decision-submit',mode==='ANNULER'?(demo?'Simuler l’annulation':'Valider l’annulation'):(demo?'Simuler la confirmation':'Valider la confirmation'));
+    E('l7-decision-panel').scrollIntoView({behavior:'smooth',block:'nearest'});
+    (mode==='ANNULER'?E('l7-cancel-reason'):E('l7-confirm-reason')).focus({preventScroll:true});
+  }
+  function hideDecision(){mode='';E('l7-decision-panel').hidden=true;E('l7-cancel-reason').value='';E('l7-cancel-agree').checked=false;E('l7-confirm-note').value='';}
+  function key(){if(window.crypto&&typeof window.crypto.randomUUID==='function')return window.crypto.randomUUID();return String(Date.now())+'-'+Math.random().toString(36).slice(2,20);}
+  function sendAction(request){
+    if(!active||busy)return;
+    if(demo){if(request.action==='RAPPEL'){
+        reminders.unshift({resultat:request.resultat,note:request.note,date:new Date().toLocaleString('fr-FR')});E('l7-rappel-note').value='';render();setFeedback('Rappel ajouté à la simulation. Rien n’a été enregistré dans CONTROL ou CLIENT.',false);
+      }else{
+        if(active.statut==='ANNULEE'||(request.action==='CONFIRMER'&&active.statut!=='EN_ATTENTE'))return;
+        active.statut=request.action==='CONFIRMER'?'CONFIRMEE':'ANNULEE';
+        document.dispatchEvent(new CustomEvent('bxct:l7:demo-change',{detail:{inscriptionId:active.inscriptionId,codePublic:active.codePublic,statut:active.statut,demoOnly:true}}));
+        hideDecision();render();setFeedback((request.action==='ANNULER'?'Annulation':'Confirmation')+' simulée pour '+active.codePublic+'. Aucun dossier réel modifié.',false);
+      }
+      return;
+    }
+    // Le Lot 8 transmet les demandes seulement au service CLIENT authentifie.
+    if(!token||!window.google?.script?.run){setFeedback('La connexion ou la liaison n’est pas disponible. Aucune action enregistrée.',true);return;}
+    busy=true;render();const current=revision;
+    window.google.script.run.withSuccessHandler(response=>{
+      if(current!==revision||!allowed)return;
+      busy=false;
+      if(response&&response.ok&&response.actionEnregistree){
+        if(request.action==='RAPPEL'){
+          reminders.unshift({resultat:request.resultat,note:request.note||'',date:new Date().toLocaleString('fr-FR'),agentId:'BOXY CONTROL'});
+          E('l7-rappel-note').value='';
+          setFeedback('Rappel enregistré dans BOXY CLIENT.',false);
+        }else{
+          active.statut=String(response.statut||active.statut);
+          active.sourceReady=false;hideDecision();
+          document.dispatchEvent(new CustomEvent('bxct:l7:remote-change',{detail:{inscriptionId:active.inscriptionId}}));
+          setFeedback((request.action==='ANNULER'?'Annulation':'Confirmation')+' enregistrée dans BOXY CLIENT. Rechargez la fiche pour toute nouvelle action.',false);
+        }
+        render();return;
+      }
+      const errorCode=String(response&&response.code||'');
+      setFeedback(/RECHARGER|CONFLIT|CIBLE_MODIFIEE|REATTRIBUE/.test(errorCode)?
+        'Ce dossier a changé. Fermez la fiche, actualisez la liste et ouvrez le dossier à nouveau.':
+        /SESSION|FORMATION/.test(errorCode)?'La Formation nécessite une session officielle ouverte avant confirmation. Vous pouvez rappeler ou annuler le dossier.':
+        'Action refusée par BOXY CLIENT ('+(errorCode||'indisponible')+'). Aucune confirmation locale.',true);
+      render();
+    }).withFailureHandler(()=>{if(current!==revision||!allowed)return;busy=false;render();setFeedback('Action non autorisée. Aucun dossier modifié.',true);}).BXCT_L7_TRAITER_DOSSIER(token,request);
+  }
+  function makeRequest(action,fields){return Object.assign({inscriptionId:active.inscriptionId,codePublic:active.codePublic,codePrestation:active.codePrestation,
+    action:action,cleIdempotence:key(),versionDossier:active.versionDossier||'',
+    dateRendezVous:action==='CONFIRMER'?active.datePrevue||'':'',
+    heureRendezVous:action==='CONFIRMER'?active.heurePrevue||'':'',
+    codeSession:action==='CONFIRMER'?active.codeSession||'':''},fields);}
+  function onReminderSubmit(ev){ev.preventDefault();if(!active||(!demo&&!active.sourceReady)||active.statut==='ANNULEE')return;
+    const resultat=E('l7-rappel-result').value,note=E('l7-rappel-note').value.trim();if(note.length>300)return setFeedback('Note trop longue.',true);
+    sendAction(makeRequest('RAPPEL',{resultat:resultat,note:note}));
+  }
+  function onDecisionSubmit(ev){ev.preventDefault();if(!active||(!demo&&!active.sourceReady)||!mode)return;
+    if(mode==='ANNULER'){const reason=E('l7-cancel-reason').value.trim();if(reason.length<8||reason.length>300)return setFeedback('Précisez un motif de 8 à 300 caractères.',true);
+      if(!E('l7-cancel-agree').checked)return setFeedback('Confirmez avoir vérifié le dossier et le motif.',true);
+      sendAction(makeRequest('ANNULER',{motif:reason,confirmerAnnulation:true}));return;
+    }
+    sendAction(makeRequest('CONFIRMER',{motif:E('l7-confirm-reason').value,note:E('l7-confirm-note').value.trim()}));
+  }
+  function close(){const overlay=E('l7-overlay');if(overlay.hidden)return;
+    revision++;overlay.hidden=true;active=null;busy=false;reminders=[];hideDecision();setFeedback('',false);
+    document.body.style.overflow=bodyOverflow;if(lastFocused&&lastFocused.isConnected)lastFocused.focus({preventScroll:true});lastFocused=null;
+  }
+  function openFromList(summary){if(!allowed||!summary||!summary.inscriptionId)return;
+    const id=String(summary.inscriptionId).slice(0,120);const reference=String(summary.codePublic||'').slice(0,100);
+    if(!Object.prototype.hasOwnProperty.call(services,summary.codePrestation))return;
+    revision++;busy=false;reminders=[];hideDecision();setFeedback('',false);
+    const demoRecord=demoContacts[id];active={inscriptionId:id,codePublic:reference,codePrestation:summary.codePrestation,
+      statut:String(summary.statut||'EN_ATTENTE'),datePrevue:summary.datePrevue||'',heurePrevue:summary.heurePrevue||'',sourceReady:false,codeSession:'',
+      nomClient:demo&&demoRecord?demoRecord.nom:'Non disponible',telephone:demo&&demoRecord?demoRecord.tel:'Non disponible',
+      email:demo&&demoRecord?demoRecord.email:'Non disponible',
+      creeLe:demo&&demoRecord?demoRecord.created:'Non disponible',note:demo&&demoRecord?demoRecord.note:'',versionDossier:''};
+    lastFocused=document.activeElement;bodyOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
+    E('l7-overlay').hidden=false;render();E('l7-close').focus({preventScroll:true});
+    if(!demo&&token&&window.google?.script?.run){
+      const rv=revision;window.google.script.run.withSuccessHandler(response=>{
+        if(rv!==revision||!allowed||!active)return;
+        if(!response||!response.ok||!response.sourceReady||!response.dossier){setFeedback('Accès au dossier non disponible ou non autorisé.',true);return;}
+        // Le futur lecteur du Lot 8 doit garantir l'identite permanente du dossier.
+        const server=response.dossier;
+        if(server.inscriptionId!==active.inscriptionId||server.codePublic!==active.codePublic||server.codePrestation!==active.codePrestation){setFeedback('Dossier modifié ou référence réattribuée. Actualisez la liste.',true);return;}
+        active.nomClient=String(server.nomClient||'—');active.telephone=String(server.telephone||'—');active.email=String(server.email||'—');
+        active.datePrevue=String(server.datePrevue||'');active.heurePrevue=String(server.heurePrevue||'');active.creeLe=String(server.creeLe||'—');
+        active.versionDossier=String(server.versionDossier||'');active.note=String(server.note||'');
+        active.statut=String(server.statut||active.statut);active.codeSession=String(server.codeSession||'');
+        active.sourceReady=Boolean(active.versionDossier);
+        reminders=Array.isArray(response.rappels)?response.rappels.slice(0,30).map(x=>({resultat:String(x.resultat),note:String(x.note||''),date:String(x.date||''),agentId:String(x.agentId||'')})):[];
+        render();
+      }).withFailureHandler(()=>{if(rv!==revision||!allowed)return;setFeedback('Consultation temporairement indisponible.',true);}).BXCT_L7_LIRE_DOSSIER(token,{inscriptionId:id,codePublic:reference,codePrestation:summary.codePrestation});
+    }
+  }
+  function onSelected(ev){if(!allowed)return;ev.preventDefault();openFromList(ev.detail);}
+  function onKeydown(ev){if(E('l7-overlay').hidden)return;
+    if(ev.key==='Escape'){ev.preventDefault();close();return;}
+    if(ev.key==='Tab'){
+      const focusables=Array.from(E('l7-dialog').querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]'))
+        .filter(el=>el.getClientRects().length&&el.closest('[hidden]')===null);
+      if(!focusables.length)return;
+      const first=focusables[0],last=focusables[focusables.length-1];
+      if(ev.shiftKey&&document.activeElement===first){ev.preventDefault();last.focus();}
+      else if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus();}
+    }
+  }
+  function init(){document.addEventListener('bxct:l6:dossier-select',onSelected);
+    E('l7-close').addEventListener('click',close);
+    E('l7-overlay').addEventListener('click',ev=>{if(ev.target===E('l7-overlay'))close();});
+    document.addEventListener('keydown',onKeydown);
+    E('l7-rappel-form').addEventListener('submit',onReminderSubmit);
+    E('l7-decision-form').addEventListener('submit',onDecisionSubmit);
+    E('l7-confirm').addEventListener('click',()=>choose('CONFIRMER'));
+    E('l7-cancel').addEventListener('click',()=>choose('ANNULER'));
+    E('l7-decision-back').addEventListener('click',hideDecision);
+  }
+  function onLogin(result,newToken){close();revision++;demo=Boolean(result&&result.demo);token=newToken||null;
+    allowed=demo||Boolean((result?.permissions||[]).some(p=>['CONSULTER_DEMANDE','CONSULTER_INSCRIPTION_ACADEMIE'].includes(p)));}
+  function onLogout(){close();revision++;allowed=false;demo=false;token=null;reminders=[];}
+  return {init:init,onLogin:onLogin,onLogout:onLogout};
+})();
+</script>

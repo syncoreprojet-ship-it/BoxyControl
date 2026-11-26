@@ -1,0 +1,72 @@
+<style>
+/* BOXY CONTROL v7.0.13-rc2 / FORMATIONS LOT 4. Presentation only.
+   Document scroll owns the main workspace; L6/L7 own their modal scroll. */
+@media screen {
+  #app.shell { width:100%; max-width:1440px; min-height:100vh; min-height:100dvh; margin:0 auto; padding:clamp(14px,2.5vw,30px); padding-bottom:max(24px,env(safe-area-inset-bottom)); border-radius:0; }
+  #app .topbar {min-width:0; padding-bottom:12px; border-bottom:1px solid var(--line)}
+  #app #dashboard, #app [data-panel], #app #auth-panel {min-width:0; overflow-wrap:anywhere}
+  #app #dashboard input:not([type=checkbox]):not([type=radio]), #app #dashboard select, #app #dashboard textarea {max-width:100%; min-width:0; font-size:16px}
+  #app #dashboard button {max-width:100%; overflow-wrap:anywhere}
+  #app #dashboard button:not(.sr-only) {min-height:44px}
+  #app .bottom-nav {width:100%; max-width:none; margin:20px 0 0; position:static; grid-template-columns:repeat(auto-fit,minmax(0,1fr)); gap:4px}
+  #app .bottom-nav button {height:auto; min-height:54px; display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center; padding:6px 3px; font-size:11px; line-height:1.25; color:#426c57}
+  #app .bottom-nav button::after {content:attr(title); text-align:center; font-weight:700}
+  #app .bottom-nav button.active {color:var(--deep)}
+  #app button:focus-visible, #app a:focus-visible {outline:3px solid #14865b; outline-offset:2px}
+  #app .actions, #app .metrics, #app .academy-stats, #app .dossier-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
+  #app .actions>* , #app .metrics>*, #app .academy-stats>* {min-width:0}
+  #app .dossier-devis strong, #app .academy-board-state {white-space:normal; overflow-wrap:anywhere}
+  #app .academy-board-name {min-width:0}
+  #app .academy-board-refresh {white-space:normal}
+  #app .l6-page {left:max(16px,env(safe-area-inset-left)); right:max(16px,env(safe-area-inset-right)); top:max(16px,env(safe-area-inset-top)); bottom:max(16px,env(safe-area-inset-bottom)); margin-inline:auto; width:min(760px,calc(100% - 32px)); max-width:100%; max-height:none; min-height:0; overflow:auto}
+  #app .l7-overlay {padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+  #app .l7-dialog {width:min(100%,760px); max-height:100%; min-height:0}
+  #app .l7-body {min-height:0; overflow-y:auto}
+  #app .l7-close {min-width:44px; min-height:44px; flex-basis:44px}
+  #app .l7-footer-buttons {min-width:0; flex-wrap:wrap}
+}
+@media screen and (min-width:600px) {
+  #app.shell {width:calc(100% - 24px); margin:12px auto; border:1px solid var(--line); border-radius:24px; min-height:calc(100dvh - 24px)}
+  #app .dash-hero h1, #app .dash-hero p, #app .academy-hero p {max-width:100%}
+  #app .dash-hero {padding:24px}
+  #app .action {min-height:126px; padding:18px}
+  #app .action h3 {font-size:15px}
+  #app .action small, #app .action .soon {font-size:12px}
+  #app .metrics .detail {font-size:12px}
+  #app .bottom-nav {max-width:640px; margin-inline:auto}
+  #app #auth-panel .bx-login-mini {width:min(100%,440px); padding:28px}
+  #app .academy-board-table tbody {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media screen and (min-width:960px) {
+  #app #dashboard:not([hidden]) {display:grid; grid-template-columns:190px minmax(0,1fr); grid-template-rows:auto auto 1fr; column-gap:24px; align-items:start; margin-top:16px}
+  #app #dashboard > :is([data-panel],.dash-hero,#demo-strip) {grid-column:2; min-width:0}
+  #app #dashboard > .bottom-nav {grid-column:1; grid-row:1 / span 3; align-self:start; position:sticky; top:16px; display:flex; flex-direction:column; margin:0; padding:10px; gap:8px; max-width:100%; z-index:4}
+  #app .bottom-nav button {flex-direction:row; justify-content:flex-start; padding:12px; gap:10px; font-size:13px; text-align:left}
+  #app .bottom-nav button::after {text-align:left}
+  #app .actions {grid-template-columns:repeat(2,minmax(0,1fr))}
+  #app .dash-hero {margin-top:0}
+}
+@media screen and (min-width:1250px) {
+  #app #dashboard:not([hidden]) {grid-template-columns:220px minmax(0,1fr); column-gap:28px}
+  #app .actions {grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media screen and (max-height:500px) {
+  #app #dashboard > .bottom-nav {position:static}
+  /* Extremely short viewport: the complete dialog becomes the scroll owner. */
+  #app .l7-dialog {display:block; overflow-y:auto; overscroll-behavior:contain}
+  #app .l7-body {overflow:visible}
+  #app .l7-footer {flex-wrap:wrap}
+}
+@media screen {
+  .bx-settings-app .bx-settings-topbar, .bx-settings-app .bx-settings-user-action {flex-wrap:wrap}
+  .bx-settings-app .bx-settings-home, .bx-settings-app button {min-height:44px}
+  .bx-settings-app .bx-settings-login {max-height:none; overflow:visible}
+  .bx-settings-app input:not([type=checkbox]):not([type=radio]), .bx-settings-app select, .bx-settings-app textarea {font-size:16px; min-width:0; max-width:100%}
+  .bx-settings-app .bx-param-head, .bx-settings-app .bx-param-card-head {flex-wrap:wrap}
+  .bx-settings-app .bx-settings-main {overflow-wrap:anywhere}
+}
+@media screen and (max-height:500px) {
+  .bx-settings-app .bx-settings-sidebar {position:static}
+  .bx-settings-app .bx-settings-auth {align-items:flex-start}
+}
+</style>

@@ -1,0 +1,135 @@
+<!-- BOXY CONTROL LOT 3/4 — Frontend autonome sans état persistant. -->
+<script>
+'use strict';
+(function(){
+ const el=id=>document.getElementById(id);
+ const box=el('bxct-l3-inbox');if(!box)return;
+ let univers='TOUS',busy=false,cursor=null,records=[],loaded=false,generation=0;
+ const fictifs=[
+  {inscriptionId:'FIC-PHOTO',code:'BXR-7K9P4Q',univers:'PHOTO',nomClient:'Client fictif · Portrait',prestation:'PORTRAIT',codeSession:'',statutDemande:'RECU',creeUtc:'2027-02-12T09:42:00Z'},
+  {inscriptionId:'FIC-ACA',code:'BXR-AC4D6Q',univers:'ACADEMIE',nomClient:'Participant fictif · CapCut',prestation:'CAPCUT_INIT',codeSession:'ACA-CAP-270116',statutDemande:'RECU',creeUtc:'2027-02-12T09:11:00Z'}
+ ];
+ const setMessage=(text,error=false)=>{const n=el('bxct-l3-message');n.hidden=false;n.className='statusbox'+(error?' warning':'');n.textContent=text;};
+ const allow=()=>{
+  if(previewMode && auth?.demo)return {PHOTO:true,ACADEMIE:true};
+  return {PHOTO:!!(auth?.features?.lookupActive && auth?.permissions?.includes('CONSULTER_DEMANDE')),
+   ACADEMIE:!!(auth?.features?.academyLookupActive && auth?.permissions?.includes('CONSULTER_INSCRIPTION_ACADEMIE'))};
+ };
+ function clear(){generation++;cursor=null;records=[];loaded=false;render();}
+ function render(){
+  const list=el('bxct-l3-list');list.replaceChildren();
+  const n=records.filter(x=>univers==='TOUS'||x.univers===univers);
+  el('bxct-l3-total').textContent=String(n.length);
+  el('bxct-l3-photo').textContent=String(n.filter(x=>x.univers==='PHOTO').length);
+  el('bxct-l3-academie').textContent=String(n.filter(x=>x.univers==='ACADEMIE').length);
+  el('bxct-l3-empty').hidden=!loaded||n.length>0;
+  el('bxct-l3-more').hidden=cursor===null||!loaded;
+  el('bxct-l3-more').disabled=busy;
+  n.forEach(d=>{
+   const card=document.createElement('article');card.className='bxct-l3-card';
+   const primary=document.createElement('div'),head=document.createElement('div');head.className='bxct-l3-card-head';
+   const pill=document.createElement('span');pill.className='bxct-l3-pill'+(d.univers==='ACADEMIE'?' academie':'');pill.textContent=d.univers==='PHOTO'?'PHOTO':'ACADÉMIE';
+   const code=document.createElement('span');code.className='bxct-l3-code';code.textContent=d.code;
+   head.append(pill,code);
+   const title=document.createElement('h3');title.textContent=d.nomClient||'Dossier client';
+   const meta=document.createElement('p');meta.textContent=(d.prestation||'Prestation')+(d.codeSession?' · '+d.codeSession:'')+' · '+(d.creeUtc||'Date indisponible').slice(0,10);
+   const statut=document.createElement('div');statut.className='bxct-l3-status';statut.textContent=d.statutDemande==='RECU'?'Demande reçue · à traiter':d.statutDemande==='ANNULEE'?'Annulée · côté CLIENT':'En examen · à traiter';
+   primary.append(head,title,meta,statut);
+   const button=document.createElement('button');button.type='button';button.className='bxct-l3-go';button.textContent='Ouvrir le dossier';button.addEventListener('click',()=>ouvrirDossier(d));
+   card.append(primary,button);list.appendChild(card);
+  });
+ }
+ function ouvrirDossier(d){
+  if(d.univers==='PHOTO'){
+   if(!allow().PHOTO)return setMessage('Consultation PHOTO non autorisée.',true);
+   academySetActivity('photo');switchTab('lookup');el('lookup-code').value=d.code;
+   noticeRecherche('Code chargé depuis la liste. Lancez la recherche sécurisée du dossier.');
+  } else {
+   if(!allow().ACADEMIE)return setMessage('Consultation ACADÉMIE non autorisée.',true);
+   if(/^BX\.FOR\.[A-Z0-9]{2,20}$/.test(String(d.code||'').toUpperCase())){
+    academySetActivity('academie');academyOpenLookup();el('academy-lookup-code').value=d.code;
+    academyLookupNote('Code BX.FOR chargé depuis les demandes. Lancez la recherche sécurisée.');
+   } else {
+    // Les références héritées BXR sont exclusivement retrouvées par Recherche générale.
+    switchTab('lookup');el('lookup-code').value=d.code;
+    noticeRecherche('Ancien code chargé. Lancez la recherche générale sécurisée.');
+   }
+  }
+ }
+ function charger(append){
+  if(busy)return;
+  if(!append){cursor=null;records=[];}
+  const requestId=++generation;
+  const droits=allow();if(!droits.PHOTO&&!droits.ACADEMIE){loaded=true;setMessage('Accès fermé. Un agent habilité et les droits de lecture doivent être configurés.',true);render();return;}
+  busy=true;setMessage('Chargement des demandes depuis CLIENT…');el('bxct-l3-refresh').disabled=true;
+  const retour=res=>{
+   if(requestId!==generation)return;
+   busy=false;el('bxct-l3-refresh').disabled=false;
+   if(!res?.ok||!Array.isArray(res.dossiers)){loaded=true;setMessage('Réponse indisponible du serveur.',true);render();return;}
+   const known=new Set(records.map(x=>x.inscriptionId));
+   (res.dossiers||[]).forEach(x=>{if(!known.has(x.inscriptionId)){records.push(x);known.add(x.inscriptionId);}});
+   cursor=res.curseurSuivant??null;loaded=true;render();
+   setMessage(records.length?'Dossiers chargés depuis BOXY CLIENT · aucune modification de la source.':'Aucun dossier enregistré dans BOXY CLIENT à ce stade.');
+  };
+  const erreur=e=>{if(requestId!==generation)return;busy=false;el('bxct-l3-refresh').disabled=false;loaded=true;
+    setMessage('Lecture indisponible ou droits fermés. Vérifiez les autorisations du compte CONTROL.',true);render();};
+  if(previewMode){retour({ok:true,dossiers:(univers==='TOUS'?fictifs:fictifs.filter(x=>x.univers===univers)),curseurSuivant:null});return;}
+  if(!idToken||!window.google?.script?.run){erreur();return;}
+  google.script.run.withSuccessHandler(retour).withFailureHandler(erreur)
+   .BXCT_L3_LISTER_DOSSIERS(idToken,{univers:univers,limite:20,curseur:append?cursor:null});
+ }
+ document.querySelectorAll('[data-bxct-l3-filter]').forEach(b=>b.addEventListener('click',()=>{
+  if(busy)return;univers=b.getAttribute('data-bxct-l3-filter');document.querySelectorAll('[data-bxct-l3-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  charger(false);
+ }));
+ el('bxct-l3-refresh').addEventListener('click',()=>charger(false));
+ el('bxct-l3-more').addEventListener('click',()=>{if(cursor!==null)charger(true);});
+ document.querySelector('[data-nav="inbox"]')?.addEventListener('click',()=>{if(box.hidden)return;charger(false);});
+ el('logout').addEventListener('click',()=>{clear();el('bxct-l3-message').textContent='Ouvrez cette page pour actualiser les inscriptions.';});
+})();
+</script>
+
+
+<!-- BOXY CONTROL TARIFS BRIQUE 3/3 : consultation securisee, sans ecriture. -->
+<script>
+'use strict';
+(function(){
+ const byId=id=>document.getElementById(id), b=byId('bxct-t3-open');if(!b)return;
+ let universe='PHOTO',busy=false,requestGeneration=0;
+ const panel=byId('bxct-t3-panel'),cards=byId('bxct-t3-cards'),status=byId('bxct-t3-state');
+ const money=n=>n===null||n===undefined?'Conditions':Number(n).toLocaleString('fr-FR')+' FCFA';
+ function render(resp){
+   cards.replaceChildren();
+   if(!resp||!resp.ok){status.textContent='Lecture indisponible ou non autorisee. Verifiez le compte CONTROL.';return;}
+   status.textContent=(resp.tarifs.length?resp.tarifs.length+' tarif(s) approuve(s) et actifs':'Aucun tarif actif pour cet univers')+
+     (resp.ouverturePublicClient?' · Publication CLIENT conditionnee par ses autres verrous':' · Inscription publique CLIENT actuellement fermee');
+   for(const r of resp.tarifs){
+     const article=document.createElement('article');article.className='bxct-t3-card';
+     const k=document.createElement('small');k.textContent=String(r.categorie||'');
+     const h=document.createElement('h4');h.textContent=String(r.titre||r.code||'');
+     const strong=document.createElement('strong');strong.textContent=r.unite==='POURCENT'?String(r.montant)+' %':money(r.montant);
+     const meta=document.createElement('p');meta.textContent=String(r.code||'')+' · '+String(r.portee||'')+' · Version '+String(r.referenceVersion||'');
+     article.append(k,h,strong,meta);cards.append(article);
+   }
+ }
+ function load(){
+  if(busy)return;busy=true;const request=++requestGeneration;
+  status.textContent='Chargement des tarifs en cours...';cards.replaceChildren();
+  const finish=()=>{busy=false;};
+  if(previewMode && auth?.demo){
+    const demo={PHOTO:[{code:'PHOTO-DEMO',titre:'Forfait portrait (DEMO)',portee:'PORTRAIT',categorie:'forfait',montant:15000,referenceVersion:'simulation',unite:'FCFA'}],
+      ACADEMIE:[{code:'ACA-DEMO',titre:'Formation video (DEMO)',portee:'FORMATION',categorie:'formation',montant:25000,referenceVersion:'simulation',unite:'FCFA'}]};
+    render({ok:true,tarifs:demo[universe],ouverturePublicClient:false});finish();return;
+  }
+  if(!idToken||!window.google?.script?.run){render(null);finish();return;}
+  google.script.run.withSuccessHandler(r=>{if(request===requestGeneration&&!panel.hidden&&idToken){render(r);}finish();})
+    .withFailureHandler(()=>{if(request===requestGeneration&&!panel.hidden){render(null);}finish();})
+    .BXCT_T3_TARIFS(idToken,universe);
+ }
+ b.addEventListener('click',()=>{panel.hidden=!panel.hidden;b.setAttribute('aria-expanded',String(!panel.hidden));if(!panel.hidden)load();});
+ [['PHOTO','bxct-t3-photo'],['ACADEMIE','bxct-t3-academie']].forEach(([u,id])=>byId(id).addEventListener('click',()=>{
+  if(busy)return;universe=u;for(const [other,button] of [['PHOTO','bxct-t3-photo'],['ACADEMIE','bxct-t3-academie']])byId(button).setAttribute('aria-pressed',String(u===other));load();
+ }));
+ const logout=byId('logout');if(logout)logout.addEventListener('click',()=>{requestGeneration++;panel.hidden=true;b.setAttribute('aria-expanded','false');cards.replaceChildren();status.textContent='Reconnectez-vous pour consulter les tarifs.';});
+})();
+</script>

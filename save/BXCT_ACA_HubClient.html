@@ -1,0 +1,47 @@
+<script>
+/* v7.0.14-rc1. UI routing only. Existing controls retain permission decisions. */
+window.BXCT_ACA_HUB_UI=(()=>{
+ 'use strict';
+ const get=id=>document.getElementById(id), root=get('academy-home-content');
+ const grid=get('bxct-aca-hub-grid'), header=get('bxct-aca-hub-header');
+ const catalogue=get('bxct-aca-hub-catalogue'), sessions=get('bxct-aca-hub-sessions');
+ const lookup=get('academy-open-participant'), finance=get('bxct-aca-desk-open');
+ const cards=[...grid.querySelectorAll('[data-aca-module]')];
+ const heading=get('academy-lookup-panel').querySelector('.academy-lookup-heading h2');
+ const eyebrow=get('academy-lookup-panel').querySelector('.academy-lookup-heading .academy-eyebrow');
+ const titles={inscriptions:'Inscriptions',apprenants:'Apprenants',presences:'Présences'};
+ function reset(){root.dataset.acaSpace='home';header.hidden=true;catalogue.hidden=true;sessions.hidden=true;heading.textContent='Retrouver un participant';eyebrow.textContent='BOXY ACADÉMIE · INSCRIPTIONS';sync();}
+ function sync(){
+  for(const b of cards){const k=b.dataset.acaModule;const s=b.querySelector('.aca-hub-state');
+   let closed=false;
+   if(k==='encaissements')closed=finance.disabled;
+   else if(k in titles)closed=lookup.disabled||(k==='presences'&&!acad4CanRead);
+   // Catalogue and sessions may be opened to read their existing access status.
+   if(k==='attestations'||k==='statistiques')continue;
+   b.disabled=closed;s.hidden=!closed;s.textContent=closed?'Accès fermé':'';
+  }
+ }
+ function open(k){
+  if(academyActivity!=='academie')return;
+  sync();const b=cards.find(x=>x.dataset.acaModule===k);if(!b||b.disabled)return;
+  academyLookupHide(true);reset();
+  if(k==='encaissements'){finance.click();return;}
+  root.dataset.acaSpace=k;
+  if(k in titles){
+   heading.textContent=titles[k]+' · Rechercher un participant';eyebrow.textContent='BOXY ACADÉMIE · '+titles[k].toUpperCase();
+   lookup.click();return;
+  }
+  header.hidden=false;get('bxct-aca-hub-title').textContent=k==='catalogue'?'Catalogue':'Sessions';
+  if(k==='catalogue'){catalogue.hidden=false;get('bxct-aca-hub-catalogue-note').hidden=!get('bxct-form-admin').hidden;}
+  if(k==='sessions'){sessions.hidden=false;academyLoad();}
+  get('bxct-aca-hub-title').focus();
+ }
+ for(const b of cards)b.addEventListener('click',()=>open(b.dataset.acaModule));
+ get('bxct-aca-hub-back').addEventListener('click',()=>{const old=root.dataset.acaSpace;reset();cards.find(x=>x.dataset.acaModule===old)?.focus();});
+ // Existing login/feature handlers remain the authority; reflect their disabled state.
+ const observer=new MutationObserver(sync);observer.observe(lookup,{attributes:true,attributeFilter:['disabled']});observer.observe(finance,{attributes:true,attributeFilter:['disabled']});
+ // For the shared participant fiche, provide a contextual entry, without removing any historical actions.
+ function onTab(tab){if(tab!=='home'){if(!get('academy-lookup-panel').hidden)academyLookupHide(true);reset();}}
+ sync();return Object.freeze({reset,onTab});
+})();
+</script>

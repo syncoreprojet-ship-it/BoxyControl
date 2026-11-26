@@ -1,0 +1,66 @@
+<script>
+/* Interface isolée; le serveur décide. Aucun jeton conservé après logout. */
+window.BXCT_FORM_ADMIN_UI=(()=>{
+  'use strict';
+  const el=id=>document.getElementById('bxct-form-admin'+(id?'-'+id:''));
+  let revision=0,token=null,enabled=false,busy=false,canWrite=false,pending=null;
+  const status=s=>{el('status').textContent=s;};
+  function buttons(){el('load').disabled=busy;el('seed').hidden=!canWrite;el('seed').disabled=busy;el('confirm-ok').disabled=busy;el('confirm-no').disabled=busy;el('cards').querySelectorAll('button,input,select').forEach(b=>b.disabled=busy||!canWrite);}
+  function clear(){revision++;busy=false;canWrite=false;pending=null;el('confirm').hidden=true;el('confirm-text').textContent='';el('cards').replaceChildren();status('Catalogue non chargé.');buttons();}
+  function onLogin(result,sessionToken){clear();enabled=Boolean(!result.demo&&result.permissions?.includes('CONSULTER_ACADEMIE'));token=enabled?sessionToken:null;el('').hidden=!enabled;}
+  function onLogout(){enabled=false;token=null;clear();el('').hidden=true;}
+  function onActivity(name){if(name!=='academie')clear();}
+  function valid(n,t){return enabled&&n===revision&&t===token;}
+  function text(tag,value){const n=document.createElement(tag);n.textContent=value;return n;}
+  function ask(input,description){if(!canWrite||busy)return;pending=input;el('confirm-text').textContent=description;el('confirm').hidden=false;el('confirm-ok').focus();}
+  function render(data){
+    canWrite=data.mutationTest===true;el('cards').replaceChildren();
+    data.formations.forEach(f=>{
+      const card=document.createElement('article');card.className='bxct-form-card';
+      card.append(text('strong',f.titre||f.code),text('p',f.categorie+' · '+f.code),text('p',f.description||'Description non renseignée.'));
+      const label=text('p',f.inscription==='PARCOURS_HISTORIQUE'?'Parcours historique · disponibilité existante':'🔒 Inscription verrouillée');label.className='bxct-form-state';card.append(label,text('p','Fiche : '+(f.validation||'non renseignée')+' · publication pédagogique : '+(f.visiblePublic==='OUI'?'oui':'non')),text('p','Vitrine : '+(f.visibleVitrine==='OUI'?'visible':f.visibleVitrine==='NON'?'masquée':'non configurée')));
+      if(canWrite&&f.inscription!=='PARCOURS_HISTORIQUE'&&['OUI','NON'].includes(f.visibleVitrine)){
+        const visible=f.visibleVitrine==='OUI'?'NON':'OUI';const b=text('button',visible==='NON'?'Masquer la carte TEST':'Afficher la carte TEST');b.type='button';b.className='academy-board-refresh';
+        b.addEventListener('click',()=>ask({action:'VISIBILITY',code:f.code,expected:f.visibleVitrine,visible},'Modifier la visibilité vitrine TEST de « '+f.titre+' » ? Les inscriptions restent verrouillées.'));card.append(b);
+        if(f.validation==='A_VALIDER'&&f.visiblePublic==='NON'){
+          const edit=document.createElement('div');edit.className='bxct-form-edit';
+          const field=document.createElement('select');field.setAttribute('aria-label','Champ à modifier : '+f.titre);
+          const values={TITLE:f.titre,DESCRIPTION:f.description,ORDER:f.ordre};
+          [['TITLE','Intitulé'],['DESCRIPTION','Description'],['ORDER','Ordre']].forEach(([v,l])=>{const opt=text('option',l);opt.value=v;field.append(opt);});
+          const value=document.createElement('input');value.setAttribute('aria-label','Nouvelle valeur : '+f.titre);value.autocomplete='off';
+          function sync(){value.value=values[field.value]||'';value.maxLength=field.value==='TITLE'?120:field.value==='ORDER'?3:700;value.inputMode=field.value==='ORDER'?'numeric':'text';}
+          field.addEventListener('change',sync);sync();
+          const save=text('button','Modifier le brouillon TEST');save.type='button';save.className='academy-board-refresh';
+          save.addEventListener('click',()=>ask({action:'EDIT_FIELD',code:f.code,field:field.value,expected:values[field.value]||'',value:value.value.trim()},'Enregistrer ce champ de la fiche TEST « '+f.titre+' » ?'));
+          edit.append(field,value,save);card.append(edit);
+        }
+      }
+      el('cards').append(card);
+    });
+    status(data.formations.length+' fiche(s) officielle(s) · '+data.mode+' · '+(canWrite?'Administration TEST préparée côté CONTROL.':'Lecture seule.'));
+  }
+  function load(){
+    if(!enabled||!token||busy||!window.google?.script?.run)return;
+    pending=null;el('confirm').hidden=true;busy=true;buttons();status('Lecture du catalogue officiel…');
+    const n=++revision,t=token;
+    google.script.run.withSuccessHandler(r=>{
+      if(!valid(n,t))return;busy=false;
+      if(r?.ok&&Array.isArray(r.data?.formations))render(r.data);else{clear();status('Catalogue indisponible ou accès refusé.');}
+      buttons();
+    }).withFailureHandler(()=>{if(!valid(n,t))return;clear();status('Lecture momentanément indisponible.');}).BXCT_FORM_ADMIN_LIST(t);
+  }
+  function change(){
+    if(!pending||!canWrite||busy||!token)return;const input=pending;pending=null;el('confirm').hidden=true;busy=true;buttons();status('Vérification de la mutation TEST…');
+    const n=++revision,t=token;
+    google.script.run.withSuccessHandler(r=>{
+      if(!valid(n,t))return;busy=false;canWrite=false;buttons();el('cards').replaceChildren();
+      if(r?.ok){load();return;}status('Opération refusée : '+(r?.code||'ERREUR')+'. Actualisez le catalogue avant de réessayer.');
+    }).withFailureHandler(()=>{if(!valid(n,t))return;busy=false;canWrite=false;el('cards').replaceChildren();buttons();status('Résultat non confirmé. Actualisez le catalogue et vérifiez l’audit.');}).BXCT_FORM_ADMIN_CHANGE(t,input);
+  }
+  el('load').addEventListener('click',load);
+  el('seed').addEventListener('click',()=>ask({action:'SEED'},'Ajouter les fiches manquantes du catalogue validé à la copie TEST ? Aucune fiche existante ne sera écrasée.'));
+  el('confirm-ok').addEventListener('click',change);
+  el('confirm-no').addEventListener('click',()=>{pending=null;el('confirm').hidden=true;el('load').focus();});
+  return Object.freeze({onLogin,onLogout,onActivity});
+})();
+</script>

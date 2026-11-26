@@ -1,0 +1,28 @@
+<style>
+#bxct-form-admin{min-width:0;overflow-wrap:anywhere}
+#bxct-form-admin [hidden]{display:none!important}
+#bxct-form-admin .bxct-form-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#bxct-form-admin button{min-height:44px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#bxct-form-admin .bxct-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px}
+#bxct-form-admin .bxct-form-card{min-width:0;border:1px solid #d4e5da;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;background:#fff;color:#224e35}
+#bxct-form-admin .bxct-form-card p{margin:0;line-height:1.45;font-size:13px;color:#466153}
+#bxct-form-admin .bxct-form-card strong{font-size:15px}
+#bxct-form-admin .bxct-form-card button{margin-top:auto}
+#bxct-form-admin .bxct-form-state{font-weight:600;color:#335b43}
+#bxct-form-admin .bxct-form-edit{display:grid;gap:8px;margin-top:6px;min-width:0}
+#bxct-form-admin .bxct-form-edit input,#bxct-form-admin .bxct-form-edit select{width:100%;min-width:0;min-height:44px;font:inherit;border:1px solid #bcd3c3;border-radius:8px;padding:8px;background:white;color:#224e35}
+#bxct-form-admin .bxct-form-confirm{border:1px solid #c4dccc;padding:10px;border-radius:10px;margin:8px 0;background:#f4faf5}
+</style>
+<section id="bxct-form-admin" class="academy-board" hidden aria-labelledby="bxct-form-admin-title">
+  <div class="academy-board-head"><div><h3 id="bxct-form-admin-title">Catalogue des formations</h3><p>Source officielle BOXY CLIENT · administration de recette</p></div></div>
+  <div class="bxct-form-actions">
+    <button type="button" id="bxct-form-admin-load" class="academy-board-refresh">Afficher / actualiser</button>
+    <button type="button" id="bxct-form-admin-seed" class="academy-board-refresh" hidden>Préparer les 15 formations (TEST)</button>
+  </div>
+  <p id="bxct-form-admin-status" class="academy-board-status" role="status" aria-live="polite">Catalogue non chargé.</p>
+  <div id="bxct-form-admin-confirm" class="bxct-form-confirm" hidden>
+    <p id="bxct-form-admin-confirm-text"></p><div class="bxct-form-actions"><button type="button" id="bxct-form-admin-confirm-ok" class="academy-board-refresh">Confirmer en TEST</button><button type="button" id="bxct-form-admin-confirm-no" class="academy-board-refresh">Annuler</button></div>
+  </div>
+  <div id="bxct-form-admin-cards" class="bxct-form-grid"></div>
+  <p class="academy-board-footer">Création de contenu conserve son parcours historique. Les autres inscriptions restent verrouillées. La visibilité vitrine est distincte de la publication pédagogique ; la vitrine CLIENT sera synchronisée au lot 5.</p>
+</section>

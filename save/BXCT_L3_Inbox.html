@@ -1,0 +1,98 @@
+<!-- BOXY CONTROL LOT 3/4 — Vue indépendante, insérée dans Index. -->
+<style>
+.bottom-nav:has([data-nav="inbox"]){grid-template-columns:repeat(5,minmax(0,1fr))}
+.shell:has(#bxct-l3-inbox:not([hidden])){width:min(100%,980px)}
+#bxct-l3-inbox{margin:20px 0 0}
+.bxct-l3-hero{background:linear-gradient(119deg,#10462e 0%,#147a4c 74%,#269963 100%);color:#fff;border-radius:24px;padding:24px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.bxct-l3-hero:after{content:"";position:absolute;right:-54px;top:-75px;width:225px;height:225px;border:30px solid rgba(182,255,114,.16);border-radius:60px;transform:rotate(23deg)}
+.bxct-l3-hero>div{position:relative;z-index:1}
+.bxct-l3-kicker{font-size:11px;color:#a7f0ae;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.bxct-l3-hero h2{font-size:27px;line-height:1.1;letter-spacing:-.7px;margin:10px 0;color:#fff;font-weight:850}
+.bxct-l3-hero p{font-size:12px;color:#d1f5db;max-width:480px}
+.bxct-l3-round{background:rgba(255,255,255,.11);border:1px solid rgba(225,255,221,.3);width:60px;height:60px;display:grid;place-items:center;border-radius:20px;flex:none;font-size:28px}
+.bxct-l3-banner{display:flex;gap:10px;align-items:flex-start;background:#f0fbf1;border:1px solid #cce9d7;border-radius:14px;margin-top:15px;padding:13px;font-size:12px;line-height:1.5;color:#366548}
+.bxct-l3-banner strong{color:#165c3e}
+.bxct-l3-toolbar{margin-top:18px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.bxct-l3-segments{background:#ecf6ee;padding:5px;border:1px solid #dceee2;border-radius:13px;display:flex;gap:3px;flex-wrap:wrap}
+.bxct-l3-segments button{border:0;border-radius:9px;background:transparent;color:#5a7663;font-size:12px;font-weight:750;padding:10px 15px}
+.bxct-l3-segments button[aria-pressed="true"]{background:white;color:#127445;box-shadow:0 2px 9px #d0e7d6}
+.bxct-l3-refresh{border:1px solid #cadfce;background:#fff;border-radius:12px;padding:11px 15px;color:#1c724b;font-size:12px;font-weight:800}
+.bxct-l3-metrics{margin-top:15px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bxct-l3-metric{background:#fff;border:1px solid #e3eee7;border-radius:17px;padding:16px}
+.bxct-l3-metric small{display:block;color:#779083;font-size:11px;font-weight:650}
+.bxct-l3-metric strong{display:block;font-size:25px;color:#1d6442;margin-top:6px;letter-spacing:-.7px}
+.bxct-l3-grid{margin-top:15px;display:grid;gap:10px}
+.bxct-l3-card{background:#fff;border:1px solid #dfebe2;border-radius:17px;padding:17px 19px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}
+.bxct-l3-card:hover{border-color:#b6d8c1;box-shadow:0 9px 28px rgba(19,98,57,.05)}
+.bxct-l3-card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bxct-l3-pill{font-size:10px;font-weight:780;border-radius:99px;padding:5px 9px;color:#256b47;background:#e9f7ec;white-space:nowrap}
+.bxct-l3-pill.academie{color:#506b2c;background:#f0f9dc}
+.bxct-l3-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px;color:#607a66}
+.bxct-l3-card h3{font-size:15px;line-height:1.4;color:#1c4831;margin:0 0 4px}
+.bxct-l3-card p{font-size:12px;color:#779083}
+.bxct-l3-go{border:1px solid #c8e6d3;border-radius:11px;background:#f2fbf4;color:#14794a;padding:12px 14px;font-weight:780;font-size:12px}
+.bxct-l3-go:hover{background:#e3f7e8}
+.bxct-l3-status{font-size:11px;color:#567962;font-weight:650;margin-top:8px}
+.bxct-l3-empty{margin-top:15px;background:#fff;border:1px dashed #d2e5d6;border-radius:20px;padding:36px 20px;text-align:center}
+.bxct-l3-empty .bxct-l3-empty-icon{width:52px;height:52px;border-radius:17px;background:#eaf8ed;color:#27885a;display:grid;place-items:center;font-size:26px;margin:0 auto 13px}
+.bxct-l3-empty h3{font-size:17px;color:#235a39;margin:0 0 7px}
+.bxct-l3-empty p{font-size:12px;max-width:380px;margin:auto}
+.bxct-l3-foot{margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.bxct-l3-foot span{font-size:11px;color:#78917e}
+.bxct-l3-more{background:white;border:1px solid #c9dfcf;color:#1a8154;border-radius:12px;padding:11px 16px;font-weight:770;font-size:12px}
+.bxct-l3-more:disabled{opacity:.5}
+@media(max-width:620px){.shell:has(#bxct-l3-inbox:not([hidden])){padding:20px 14px 40px}.bxct-l3-hero{padding:20px}.bxct-l3-hero h2{font-size:22px}.bxct-l3-round{width:45px;height:45px;font-size:20px}.bxct-l3-toolbar{align-items:stretch}.bxct-l3-segments{flex:1;justify-content:space-between}.bxct-l3-segments button{flex:1;padding:10px 5px}.bxct-l3-refresh{width:100%}.bxct-l3-metric{padding:13px}.bxct-l3-metric strong{font-size:20px}.bxct-l3-card{grid-template-columns:1fr;gap:10px;padding:15px}.bxct-l3-go{width:100%;text-align:center}.bxct-l3-foot{align-items:stretch}.bxct-l3-more{width:100%}}
+
+/* Brique tarifs 3/3, affiche seulement pour les agents authentifies. */
+.bxct-t3-trigger{border:1px solid #b8d8c4;border-radius:12px;padding:11px 15px;background:#e9f7ed;color:#0e7141;font-size:12px;font-weight:840;cursor:pointer}
+.bxct-t3-panel{background:#fff;border:1px solid #d6e9dc;border-radius:19px;margin-top:15px;padding:20px}
+.bxct-t3-top{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.bxct-t3-top h3{margin:0;font-size:18px;color:#18472e}
+.bxct-t3-top p{color:#769483;font-size:12px;margin:7px 0 0}
+.bxct-t3-tabs{display:flex;gap:6px;background:#eef6f0;border-radius:11px;padding:4px}
+.bxct-t3-tabs button{border:0;background:transparent;border-radius:8px;padding:9px 14px;font-weight:800;font-size:12px;color:#5d796b;cursor:pointer}
+.bxct-t3-tabs button[aria-pressed=true]{background:#fff;color:#187843;box-shadow:0 3px 8px #dce9df}
+.bxct-t3-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:15px}
+.bxct-t3-card{border:1px solid #e1ece5;border-radius:13px;padding:14px;min-width:0}
+.bxct-t3-card small{font-size:10px;font-weight:800;color:#74927e}
+.bxct-t3-card h4{font-size:13px;color:#224d35;margin:7px 0;overflow-wrap:anywhere}
+.bxct-t3-card strong{color:#158048;font-size:20px}
+.bxct-t3-card p{font-size:10px;color:#729380;margin:6px 0 0;overflow-wrap:anywhere}
+.bxct-t3-state{margin-top:13px;background:#f2f9f4;border-radius:10px;color:#44715b;padding:10px 12px;font-size:12px}
+@media(max-width:620px){.bxct-t3-cards{grid-template-columns:1fr}.bxct-t3-panel{padding:15px}.bxct-t3-top{align-items:flex-start}.bxct-t3-tabs{width:100%}.bxct-t3-tabs button{flex:1}}
+</style>
+<section data-panel="inbox" hidden id="bxct-l3-inbox" aria-label="Boîte de réception CLIENT">
+  <div class="bxct-l3-hero">
+    <div><div class="bxct-l3-kicker">BOXY CONTROL · CLIENT → CONTROL</div><h2>Demandes reçues</h2><p>Vos dossiers PHOTO et ACADÉMIE, consultés en direct depuis BOXY CLIENT.</p></div>
+    <div class="bxct-l3-round" aria-hidden="true">↧</div>
+  </div>
+  <div class="bxct-l3-banner"><span aria-hidden="true">◈</span><div><strong>Lecture seule</strong> · CLIENT conserve les inscriptions. CONTROL est seul responsable des décisions et paiements. Aucune réservation ni place confirmée par cette vue.</div></div>
+  <div class="bxct-l3-toolbar">
+    <div class="bxct-l3-segments" role="group" aria-label="Filtrer les demandes">
+      <button type="button" data-bxct-l3-filter="TOUS" aria-pressed="true">Tous</button>
+      <button type="button" data-bxct-l3-filter="PHOTO" aria-pressed="false">PHOTO</button>
+      <button type="button" data-bxct-l3-filter="ACADEMIE" aria-pressed="false">ACADÉMIE</button>
+    </div>
+    <button type="button" class="bxct-t3-trigger" id="bxct-t3-open" aria-expanded="false">Tarifs officiels</button>
+    <button type="button" id="bxct-l3-refresh" class="bxct-l3-refresh">↻ Actualiser</button>
+  </div>
+
+  <section id="bxct-t3-panel" class="bxct-t3-panel" hidden aria-label="Tarifs officiels BOXY">
+    <div class="bxct-t3-top"><div><h3>Tarifs officiels · CLIENT</h3><p>Lecture des references approuvees. Les devis deja valides restent figes dans leur dossier.</p></div>
+    <div class="bxct-t3-tabs" role="group" aria-label="Univers tarifaire">
+      <button id="bxct-t3-photo" type="button" aria-pressed="true">PHOTO</button>
+      <button id="bxct-t3-academie" type="button" aria-pressed="false">ACAD&Eacute;MIE</button>
+    </div></div>
+    <div class="bxct-t3-state" id="bxct-t3-state" role="status">Les prix sont charges apres verification des droits de l'agent.</div>
+    <div id="bxct-t3-cards" class="bxct-t3-cards"></div>
+  </section>
+  <div class="bxct-l3-metrics" aria-label="Résumé des demandes affichées">
+    <div class="bxct-l3-metric"><small>Dossiers chargés</small><strong id="bxct-l3-total">0</strong></div>
+    <div class="bxct-l3-metric"><small>PHOTO</small><strong id="bxct-l3-photo">0</strong></div>
+    <div class="bxct-l3-metric"><small>ACADÉMIE</small><strong id="bxct-l3-academie">0</strong></div>
+  </div>
+  <div id="bxct-l3-message" class="statusbox" role="status" aria-live="polite">Ouvrez cette page pour actualiser les inscriptions.</div>
+  <div id="bxct-l3-list" class="bxct-l3-grid" aria-live="polite"></div>
+  <div id="bxct-l3-empty" class="bxct-l3-empty" hidden><div class="bxct-l3-empty-icon">▤</div><h3>Aucune demande reçue</h3><p>Les prochaines inscriptions de BOXY CLIENT apparaîtront ici après ouverture des formulaires. Aucun dossier fictif n’est ajouté.</p></div>
+  <div class="bxct-l3-foot"><span id="bxct-l3-footnote">Source : BOXY_CLIENT / INSCRIPTIONS</span><button type="button" id="bxct-l3-more" class="bxct-l3-more" hidden>Charger les demandes précédentes</button></div>
+</section>

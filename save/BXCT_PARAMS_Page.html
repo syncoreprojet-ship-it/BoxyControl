@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3faf4">
+  <meta name="description" content="BOXY CONTROL : Paramètres, agents et utilisateurs">
+  <title>BOXY CONTROL | Paramètres</title>
+  <style>
+    :root{--green:#14865b;--line:#dceee1;--ink:#173d2a;--muted:#6c8877;--surface:#ffffff;--soft:#f3faf4}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--soft)}
+    body{min-height:100dvh;background:radial-gradient(ellipse at 3% 0%,#dff7e5 0%,transparent 46%),linear-gradient(130deg,#f9fefa,#f5f9f6)}
+    button,input,select{font:inherit}button{cursor:pointer}
+    [hidden]{display:none!important}
+    .bx-settings-app{min-height:100dvh;display:flex;flex-direction:column}
+    .bx-settings-gate{flex:1;display:flex;justify-content:center;align-items:center;padding:24px;color:#668375;font-size:12px}
+    .bx-settings-auth{flex:1;min-height:0;display:flex;justify-content:center;align-items:center;padding:clamp(14px,4vw,28px)}
+    .bx-settings-login{width:100%;max-width:328px;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 34px #1d70301a;padding:22px;display:grid;gap:11px;max-height:calc(100dvh - 110px);overflow-y:auto}
+    .bx-settings-login h1{margin:0;font-size:21px;color:#0e593b}
+    .bx-settings-login p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
+    .bx-settings-login label{font-weight:700;color:#356548;font-size:12px}
+    .bx-settings-login input{display:block;width:100%;min-width:0;min-height:43px;padding:10px 12px;border:1px solid #cce6d3;border-radius:11px;outline:none}
+    .bx-settings-login input:focus-visible{outline:3px solid #7fcfa1;outline-offset:1px}
+    .bx-settings-login button{min-height:42px;border:0;border-radius:11px;background:#14865b;color:#fff;font-size:13px;font-weight:800;padding:10px 14px}
+    .bx-settings-login button:disabled{opacity:.55;cursor:wait}
+    .bx-settings-login .bx-settings-login-error{padding:10px 12px;border:1px solid #f0d6d2;border-radius:10px;background:#fff3f1;color:#a0443c;font-size:12px}
+    .bx-settings-user-action{display:flex;align-items:center;gap:12px}
+    .bx-settings-logout{border:1px solid #cce6d3;border-radius:11px;background:#fff;color:#176d49;min-height:40px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}
+    @media(max-height:540px){.bx-settings-auth{align-items:flex-start}.bx-settings-login{max-height:calc(100dvh - 100px)}}
+    .bx-settings-topbar{background:#fffffff2;border-bottom:1px solid var(--line);padding:14px clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .bx-settings-brand{display:flex;align-items:center;gap:11px;min-width:0}
+    .bx-settings-symbol{height:42px;width:42px;border-radius:13px;background:#e2f8e9;color:#157e4e;font-size:22px;font-weight:900;display:grid;place-items:center;flex:none}
+    .bx-settings-brand strong{display:block;font-size:17px;line-height:1.2;color:#0d5739;letter-spacing:.02em}
+    .bx-settings-brand small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+    .bx-settings-home{display:inline-flex;align-items:center;justify-content:center;min-height:40px;gap:8px;padding:8px 12px;border:1px solid #cce6d3;border-radius:11px;background:#fff;color:#176d49;font-size:12px;font-weight:750;text-decoration:none;white-space:nowrap}
+    .bx-settings-home:hover,.bx-settings-nav-active:hover{background:#edfbf1}
+    .bx-settings-home:focus-visible,.bx-settings-nav-active:focus-visible,.bx-param button:focus-visible,.bx-param input:focus-visible,.bx-param select:focus-visible{outline:3px solid #7fcfa1;outline-offset:2px}
+    .bx-settings-layout{width:min(100%,1340px);padding:24px clamp(14px,3.5vw,42px) 40px;margin:0 auto;display:grid;grid-template-columns:234px minmax(0,1fr);align-items:start;gap:22px;min-height:0;flex:1}
+    .bx-settings-sidebar{border:1px solid var(--line);border-radius:20px;background:#fff;padding:16px;position:sticky;top:16px;min-width:0;box-shadow:0 10px 24px #183c2110}
+    .bx-settings-side-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:850;color:#83a28d;margin:4px 8px 14px}
+    .bx-settings-nav{display:grid;gap:8px}
+    .bx-settings-nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:12px 11px;border-radius:12px;font-size:12px;line-height:1.4;font-weight:750;min-width:0;overflow-wrap:anywhere;text-decoration:none}
+    .bx-settings-nav-active{background:#e7f8eb;color:#176e48;border:1px solid #b7e0c2}
+    .bx-settings-nav-future{background:#f8faf8;color:#9baaa0;border:1px dashed #e1e8e0;cursor:default}
+    .bx-settings-nav-icon{font-size:17px;line-height:1;flex:none}
+    .bx-settings-separator{border-top:1px solid #e8eee8;margin:17px 0 14px}
+    .bx-settings-coming{font-size:11px;color:#8da098;line-height:1.55;margin:2px 8px 0}
+    .bx-settings-main{min-width:0;min-height:0;border:1px solid var(--line);background:#ffffffeb;padding:clamp(14px,2.5vw,26px);border-radius:21px;box-shadow:0 14px 34px #1d70300d}
+    .bx-settings-caption{color:#629575;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .bx-settings-main h1{font-size:24px;letter-spacing:-.5px;margin:6px 0 12px}
+    .bx-settings-note{font-size:12px;color:#63836e;line-height:1.5;padding-bottom:13px;border-bottom:1px solid #e6efe8;margin:0 0 10px}
+    .bx-settings-footer{text-align:center;color:#819989;font-size:10px;padding:4px 16px 18px}
+    .bx-param{display:grid;gap:14px;min-width:0}
+    .bx-param-head h2{font-size:19px}
+    .statusbox{border:1px solid #d8eadc;background:#f6fcf7;border-radius:13px;font-size:12px;line-height:1.55;color:#496b59;padding:11px 13px}
+    .statusbox.error{background:#fff3f1;border-color:#f0d6d2;color:#a0443c}
+    .eyebrow{color:var(--green);font-size:10px;font-weight:850;letter-spacing:.075em}
+    .bx-param-head p{margin:0;color:#708a79;font-size:11px}
+    @media(max-width:800px){
+      .bx-settings-layout{grid-template-columns:minmax(0,1fr);gap:12px;padding:12px 12px 30px}
+      .bx-settings-sidebar{position:static;padding:12px;border-radius:16px}
+      .bx-settings-side-title{margin:2px 5px 8px}
+      .bx-settings-nav{grid-template-columns:minmax(0,1fr)}
+      .bx-settings-nav-future,.bx-settings-coming,.bx-settings-separator{display:none}
+      .bx-settings-nav-item{padding:10px 12px}
+      .bx-settings-main{padding:15px;border-radius:16px}
+    }
+    @media(max-width:380px){
+      .bx-settings-topbar{padding:10px 12px}
+      .bx-settings-brand strong{font-size:15px}
+      .bx-settings-brand small{font-size:10px}
+      .bx-settings-symbol{width:34px;height:34px;border-radius:10px;font-size:19px}
+      .bx-settings-home{font-size:11px;padding:7px 9px;min-height:36px}
+      .bx-settings-main{padding:11px}
+      .bx-settings-main h1{font-size:20px}
+    }
+    @media(max-height:640px){.bx-settings-topbar{padding-block:9px}.bx-settings-layout{padding-top:10px}}
+  </style>
+  <?!= HtmlService.createHtmlOutputFromFile('BXCT_PARAMS_Style').getContent() ?>
+<?!= HtmlService.createHtmlOutputFromFile('BXCT_UI_Responsive').getContent() ?>
+</head>
+<body>
+  <div class="bx-settings-app">
+    <header class="bx-settings-topbar">
+      <div class="bx-settings-brand"><div class="bx-settings-symbol" aria-hidden="true">B</div>
+        <div><strong>BOXY CONTROL</strong><small>Paramètres de l'équipe</small></div>
+      </div>
+      <div class="bx-settings-user-action">
+        <button type="button" id="bx-settings-logout" class="bx-settings-logout" hidden>Se déconnecter</button>
+        <a class="bx-settings-home" href="<?= accueilUrl ?>" target="_top" aria-label="Retour à l’accueil BOXY CONTROL">← Accueil</a>
+      </div>
+    </header>
+    <div id="bx-settings-gate-loading" class="bx-settings-gate" role="status">Vérification de l’accès…</div>
+    <section id="bx-settings-auth" class="bx-settings-auth" aria-labelledby="bx-settings-login-heading" hidden>
+      <form id="bx-settings-login-form" class="bx-settings-login" autocomplete="on">
+        <h1 id="bx-settings-login-heading">BOXY CONTROL</h1>
+        <p>Connexion administrateur · Paramètres</p>
+        <label for="bx-settings-login-id">Identifiant</label>
+        <input id="bx-settings-login-id" name="username" type="text" maxlength="32" autocomplete="username" autocapitalize="off" spellcheck="false" required placeholder="admin">
+        <label for="bx-settings-login-password">Mot de passe</label>
+        <input id="bx-settings-login-password" name="password" type="password" autocomplete="current-password" required>
+        <div id="bx-settings-login-error" class="bx-settings-login-error" role="alert" hidden></div>
+        <button id="bx-settings-login-submit" type="submit">Se connecter</button>
+      </form>
+    </section>
+    <div class="bx-settings-layout" id="bx-settings-layout" hidden>
+      <aside class="bx-settings-sidebar" aria-label="Navigation des paramètres">
+        <div class="bx-settings-side-title">Paramètres</div>
+        <nav class="bx-settings-nav" aria-label="Rubriques de configuration">
+          <a class="bx-settings-nav-item bx-settings-nav-active" href="#bx-settings-agents" aria-current="page"><span class="bx-settings-nav-icon" aria-hidden="true">●</span>Agents et utilisateurs</a>
+          <div class="bx-settings-separator"></div>
+          <div class="bx-settings-nav-item bx-settings-nav-future" aria-disabled="true"><span class="bx-settings-nav-icon" aria-hidden="true">⚙</span>Général</div>
+          <div class="bx-settings-nav-item bx-settings-nav-future" aria-disabled="true"><span class="bx-settings-nav-icon" aria-hidden="true">♧</span>Autorisations</div>
+          <div class="bx-settings-nav-item bx-settings-nav-future" aria-disabled="true"><span class="bx-settings-nav-icon" aria-hidden="true">⇄</span>Connexions</div>
+        </nav>
+        <p class="bx-settings-coming">Les autres rubriques seront ajoutées dans des lots séparés.</p>
+      </aside>
+      <main class="bx-settings-main" id="bx-settings-main">
+        <div class="bx-settings-caption">Gestion interne</div>
+        <h1>Paramètres</h1>
+        <p class="bx-settings-note">Gérez les comptes, mots de passe et rôles des membres de l’équipe.</p>
+        <?!= HtmlService.createHtmlOutputFromFile('BXCT_PARAMS_Interface').getContent() ?>
+      </main>
+    </div>
+    <footer class="bx-settings-footer">BOXY CONTROL · v7.0.8-rc3 · Gestion de l’équipe</footer>
+  </div>
+  <script>
+    'use strict';
+    const qs = id => document.getElementById(id);
+  </script>
+  <?!= HtmlService.createHtmlOutputFromFile('BXCT_PARAMS_Client').getContent() ?>
+</body>
+</html>

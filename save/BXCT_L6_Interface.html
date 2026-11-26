@@ -1,0 +1,365 @@
+<!-- BOXY CONTROL | Lot 3/7 | file des demandes CLIENT, HMAC en lecture seule. -->
+<div id="l6-backdrop" class="l6-dialog-backdrop" hidden aria-hidden="true"></div>
+<section id="l6-view" class="l6-page" hidden role="dialog" aria-modal="true" aria-labelledby="l6-title" tabindex="-1">
+  <div class="l6-topline">
+    <button type="button" id="l6-back" class="l6-back" aria-label="Fermer les demandes"><span aria-hidden="true">✕</span><span>Fermer</span></button>
+    <span class="l6-pill">BOXY · Équipe</span>
+  </div>
+  <div class="l6-titleline">
+    <div><span class="l6-kicker">SUIVI DES DEMANDES</span><h2 id="l6-title">Demandes CLIENT</h2><p>Classées par prestation et statut, avec pagination depuis BOXY CLIENT.</p></div>
+    <button type="button" id="l6-refresh" class="l6-refresh" aria-label="Actualiser la liste"><svg aria-hidden="true"><use href="#i-calendar"/></svg> <span>Actualiser</span></button>
+  </div>
+  <div id="l6-notice" class="l6-notice" role="status" aria-live="polite">Connectez-vous avec un compte autorisé pour consulter les demandes CLIENT.</div>
+  <div class="l6-summary" aria-live="polite">
+    <div><span>En attente de traitement</span><small id="l6-summary-info">Demandes en attente · périmètre autorisé</small></div>
+    <strong id="l6-total">—</strong>
+  </div>
+  <div class="l6-filters" aria-label="Filtres de réservations">
+    <div><label for="l6-status">Statut</label><select id="l6-status"><option value="TOUS">Tous les statuts</option><option value="EN_ATTENTE">En attente</option><option value="CONFIRMEE">Confirmées</option><option value="ANNULEE">Annulées</option></select></div>
+    <div><label for="l6-prestation">Prestation</label><select id="l6-prestation"><option value="TOUS">Toutes</option><option value="SHOOTING">Shooting photo</option><option value="FORMATION">Formation</option><option value="MARIAGE">Mariage &amp; cérémonie</option><option value="CASTING">Casting &amp; talents</option><option value="VIDEO">Production audiovisuelle</option><option value="CONTENU">Création de contenus</option><option value="STUDIO">Retouche &amp; studio</option><option value="EVENT">Événements BOXY</option></select></div>
+  </div>
+  <div id="l6-groups" class="l6-groups" aria-live="polite"></div>
+  <button type="button" id="l6-more" class="l6-refresh l6-more" hidden>Afficher les réservations suivantes</button>
+  <section id="l6-detail" class="l6-detail" hidden aria-labelledby="l6-detail-title">
+    <div class="l6-detail-head"><div><span class="l6-kicker">APERÇU DU DOSSIER</span><h3 id="l6-detail-title">Réservation</h3></div><button type="button" id="l6-detail-close" aria-label="Fermer les détails">✕</button></div>
+    <div id="l6-detail-lines" class="l6-detail-lines"></div>
+    <p class="l6-detail-note">Consultation uniquement. Les confirmations et annulations ne sont pas disponibles au Lot 3/7. La consultation complète sera traitée au Lot 4/7.</p>
+  </section>
+  <p class="l6-footer">Les montants et paiements ne sont pas modifiés. Aucune confirmation ou annulation n’est envoyée depuis la file du Lot 3.</p>
+</section>
+<style>
+/* Lecture CLIENT : panneau unique sous la cloche, isolé du dashboard. */
+body.l6-dialog-open{overflow:hidden}
+.l6-dialog-backdrop{position:fixed;inset:0;background:rgba(9,36,24,.43);z-index:80}
+.l6-page{position:fixed;z-index:81;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));bottom:max(12px,env(safe-area-inset-bottom));width:min(550px,calc(100vw - 24px));max-width:calc(100vw - 24px);min-width:0;max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;background:#fff;border:1px solid #d6e9dc;border-radius:22px;box-shadow:0 24px 90px rgba(7,52,32,.25);padding:18px;outline:none}
+.l6-page:focus-visible{outline:2px solid #c2e8d1;outline-offset:-3px}
+@media(max-width:600px){.l6-page{right:8px;left:8px;top:max(8px,env(safe-area-inset-top));bottom:max(8px,env(safe-area-inset-bottom));width:auto;max-width:none;max-height:calc(100dvh - 16px);padding:14px;border-radius:17px}}
+/* Lot 6 : styles locaux, non intrusifs pour les autres modules. */
+.l6-bell{width:42px;height:42px;flex:0 0 42px;border:1px solid #d9e9df;border-radius:14px;background:#f5fcf7;color:var(--green);display:grid;place-items:center;position:relative;transition:background .2s,border-color .2s}
+.l6-bell svg{width:20px;height:20px}
+.l6-bell:hover{background:#e7f8eb;border-color:#9fdbb8}
+.l6-bell-badge{position:absolute;right:-7px;top:-6px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;background:#0d7450;border:2px solid white;color:white;font-size:10px;font-weight:800;line-height:1;padding:0 4px;box-shadow:0 3px 8px #16553422}
+.l6-bell-unknown{position:absolute;right:-3px;top:-3px;width:11px;height:11px;background:#edb66b;border:2px solid #fff;border-radius:50%}
+.l6-auth-inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:17px;padding:15px 16px;border-radius:18px;border:1px solid #d8ecdf;background:white}
+.l6-auth-inline>div:first-child{flex:1;min-width:155px}
+.l6-auth-inline strong{display:block;font-size:13px;color:#1a6949}
+.l6-auth-inline p{font-size:11px;margin-top:3px}
+.l6-auth-inline .gsi-slot{min-height:40px;justify-content:flex-start}
+.l6-auth-info{font-size:11px;color:var(--muted);margin-top:10px;padding:0 4px}
+.l6-auth-inline #login-status,.l6-auth-inline #provision{flex-basis:100%}
+.l6-auth-inline .demo-only{flex-basis:100%;margin-top:3px}
+/* Les groupes restent en une colonne dans le panneau, y compris sur desktop. */
+.l6-groups{grid-template-columns:minmax(0,1fr)}
+.l6-topline{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.l6-back{border:0;background:none;color:var(--green);display:flex;align-items:center;gap:6px;font-size:11px;font-weight:750;padding:10px 0}
+.l6-back [aria-hidden="true"]{font-size:16px;line-height:1}
+.l6-pill{display:inline-flex;align-items:center;border:1px solid #d7eadc;border-radius:999px;background:#f5fbf6;color:#468165;font-size:10px;padding:6px 10px;font-weight:750}
+.l6-titleline{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:13px 0 16px}
+.l6-kicker{font-size:10px;font-weight:850;letter-spacing:.13em;color:#238459}
+.l6-titleline h2{font-size:24px;font-weight:850;margin:5px 0 4px;color:#123f2d}
+.l6-titleline p{font-size:12px;line-height:1.5}
+.l6-refresh{border:1px solid #d8e9dc;background:#fff;border-radius:12px;display:flex;align-items:center;gap:5px;padding:10px;color:var(--green);font-size:11px;font-weight:750;flex:none}
+.l6-refresh svg{width:16px;height:16px}
+.l6-refresh:disabled{opacity:.5}
+.l6-notice{padding:12px 13px;border-radius:14px;border:1px solid #e9dcbb;background:#fff9ed;color:#7d6529;font-size:11px;line-height:1.5;margin-bottom:12px}
+.l6-notice.l6-demo{border-color:#badcc8;background:#effaf3;color:#356c4c}
+.l6-notice.l6-alert{border-color:#f0d5cc;background:#fff5f1;color:#8f4c35}
+.l6-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px;border:1px solid #cfead6;background:linear-gradient(120deg,#e9fbed,#f8fff1);border-radius:19px;margin-bottom:15px}
+.l6-summary span{display:block;font-weight:800;font-size:12px;color:#245f40}
+.l6-summary small{display:block;font-size:10px;margin-top:5px;color:#6e8978;line-height:1.5}
+.l6-summary strong{font-size:32px;color:#0f714b;font-weight:900;letter-spacing:-1px;line-height:1}
+.l6-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:13px 0 16px}
+.l6-filters>div{min-width:0}
+.l6-filters label{display:block;font-weight:700;font-size:11px;margin-bottom:6px;color:#456b54}
+.l6-filters select{width:100%;height:42px;border:1px solid #d7e9dd;border-radius:12px;background:#fff;color:#244f38;padding:0 9px;font-size:11px;min-width:0}
+.l6-groups{display:grid;gap:15px}.l6-more{margin:16px auto;justify-content:center;width:100%;max-width:370px}.l6-more[hidden]{display:none!important}
+.l6-group{border:1px solid #dfede3;background:#fff;border-radius:18px;overflow:hidden}
+.l6-grouphead{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#f4faf6;padding:13px 14px;border-bottom:1px solid #e7f0e9}
+.l6-grouphead strong{font-size:12px;color:#1b573b}
+.l6-grouphead span{font-size:10px;font-weight:800;background:#fff;border:1px solid #d5e7d9;padding:5px 8px;border-radius:30px;color:#52725e;white-space:nowrap}
+.l6-row{width:100%;display:flex;gap:11px;text-align:left;align-items:center;justify-content:space-between;padding:13px 14px;background:white;border:0;border-bottom:1px solid #edf3ee;color:inherit;min-width:0}
+.l6-row:last-child{border-bottom:0}
+.l6-row:hover{background:#f7fcf8}
+.l6-row:focus-visible,.l6-bell:focus-visible,.l6-refresh:focus-visible,.l6-back:focus-visible,.l6-filters select:focus-visible{outline:3px solid #8ad4a7;outline-offset:2px}
+.l6-rowmain{display:grid;gap:3px;min-width:0}
+.l6-rowmain strong{font-size:12px;overflow-wrap:anywhere}
+.l6-rowmain small{font-size:10px;color:#688b76;line-height:1.4}
+.l6-rowend{display:grid;gap:5px;justify-items:end;flex:none}
+.l6-state{font-size:10px;border:1px solid #efdcae;background:#fff7e7;color:#916221;border-radius:99px;padding:5px 8px;font-weight:700;white-space:nowrap}
+.l6-state.is-confirmed{background:#eaf8ef;border-color:#c9e9d2;color:#217047}
+.l6-state.is-cancelled{background:#fff0ed;border-color:#f2d7d0;color:#b05242}
+.l6-chevron{font-size:16px;color:#8bad97;line-height:1}
+.l6-empty{border:1px dashed #d3e4d6;background:#fbfefa;border-radius:16px;padding:20px;text-align:center;font-size:12px;color:#6c8977;line-height:1.6}
+.l6-detail{margin-top:15px;padding:17px;border:1px solid #c7e3d1;border-radius:18px;background:white;box-shadow:0 7px 21px #0754320a}
+.l6-detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start}
+.l6-detail-head h3{font-size:17px;margin:5px 0 0;color:#12543a}
+.l6-detail-head button{width:35px;height:35px;border:1px solid #e1ebdf;border-radius:11px;background:#f7fbf7;color:#3e805d}
+.l6-detail-lines{display:grid;gap:9px;padding:14px 0;margin-top:8px;border-top:1px solid #eef3ee}
+.l6-detail-line{display:flex;justify-content:space-between;gap:12px;font-size:11px}
+.l6-detail-line span{color:#6b8776}
+.l6-detail-line strong{text-align:right;overflow-wrap:anywhere}
+.l6-detail-note{font-size:11px;background:#f4faf6;padding:11px;border-radius:12px}
+.l6-footer{font-size:10px;color:#839e89;padding:14px 4px;line-height:1.55}
+@media(max-width:350px){.l6-titleline h2{font-size:21px}.l6-filters{grid-template-columns:1fr}.l6-auth-inline{padding:12px}.l6-bell{width:39px;height:39px;flex-basis:39px}}
+</style>
+<script>
+/* BXCT_L6: interface autonome, pas d'ecriture Apps Script ni stockage navigateur. */
+window.BXCT_L6 = (() => {
+  'use strict';
+  const E=id=>document.getElementById(id);
+  const catalog=[
+    ['SHOOTING','Shooting Photo'],['FORMATION','Formation Création de contenu'],
+    ['MARIAGE','Mariage & cérémonie'],['CASTING','Casting & talents'],
+    ['VIDEO','Production audiovisuelle'],['CONTENU','Création de contenus'],
+    ['STUDIO','Retouche & studio'],['EVENT','Événements BOXY']
+  ];
+  const title=new Map(catalog), ranks=new Map(catalog.map((p,i)=>[p[0],i]));
+  const statusLabels={EN_ATTENTE:'En attente',CONFIRMEE:'Confirmée',ANNULEE:'Annulée'};
+  let authToken=null, granted=false, demonstration=false, ready=false;
+  let lastFocus=null;
+  let rows=[],pending=null,loading=false,sessionVersion=0,nextCursor=null;
+  const demoRows=[
+    {inscriptionId:'DEMO-01',codePublic:'BX.SHO.01',codePrestation:'SHOOTING',statut:'EN_ATTENTE',datePrevue:'2026-12-02',heurePrevue:'09:00'},
+    {inscriptionId:'DEMO-02',codePublic:'BX.SHO.02',codePrestation:'SHOOTING',statut:'CONFIRMEE',datePrevue:'2026-12-04',heurePrevue:'14:00'},
+    {inscriptionId:'DEMO-03',codePublic:'BX.FOR.01',codePrestation:'FORMATION',statut:'EN_ATTENTE',datePrevue:null,heurePrevue:null},
+    {inscriptionId:'DEMO-04',codePublic:'BX.MAR.01',codePrestation:'MARIAGE',statut:'EN_ATTENTE',datePrevue:'2026-12-10',heurePrevue:null},
+    {inscriptionId:'DEMO-05',codePublic:'BX.CAS.01',codePrestation:'CASTING',statut:'ANNULEE',datePrevue:'2026-12-07',heurePrevue:'16:00'},
+    {inscriptionId:'DEMO-06',codePublic:'BX.PRO.01',codePrestation:'VIDEO',statut:'EN_ATTENTE',datePrevue:'2026-12-16',heurePrevue:null},
+    {inscriptionId:'DEMO-07',codePublic:'BX.CRE.01',codePrestation:'CONTENU',statut:'CONFIRMEE',datePrevue:'2026-12-11',heurePrevue:'11:00'},
+    {inscriptionId:'DEMO-08',codePublic:'BX.RET.01',codePrestation:'STUDIO',statut:'EN_ATTENTE',datePrevue:'2026-12-05',heurePrevue:null},
+    {inscriptionId:'DEMO-09',codePublic:'BX.EVE.01',codePrestation:'EVENT',statut:'EN_ATTENTE',datePrevue:'2026-12-28',heurePrevue:null}
+  ];
+  const demoSeedStatus=new Map(demoRows.map(r=>[r.inscriptionId,r.statut]));
+  let filterVersion=0; // rejette les reponses d'un filtre perime, sans perdre de page.
+  let allowedPrestations=new Set();
+  function filtreActuel(){return {statut:E('l6-status').value,prestation:E('l6-prestation').value,limite:BXCT_L6_PAGE_SIZE};}
+  const BXCT_L6_PAGE_SIZE=60;
+  function limiterOptions(result){
+    const perms=new Set(result?.permissions||[]),role=String(result?.agent?.role||'');
+    const sup=role==='ADMIN_CONTROL'||role==='SUPERVISEUR';
+    allowedPrestations=new Set();
+    if(demonstration){catalog.forEach(x=>allowedPrestations.add(x[0]));}
+    else {
+      if(perms.has('CONSULTER_DEMANDE')){
+        allowedPrestations.add('SHOOTING');
+        if(sup)['MARIAGE','CASTING','VIDEO','CONTENU','STUDIO','EVENT'].forEach(x=>allowedPrestations.add(x));
+      }
+      if(perms.has('CONSULTER_INSCRIPTION_ACADEMIE'))allowedPrestations.add('FORMATION');
+    }
+    E('l6-prestation').querySelectorAll('option').forEach(o=>{
+      if(o.value==='TOUS')return;
+      o.hidden=!allowedPrestations.has(o.value);
+      o.disabled=!allowedPrestations.has(o.value);
+    });
+    if(!allowedPrestations.has(E('l6-prestation').value))E('l6-prestation').value='TOUS';
+  }
+  function normalize(data){
+    if (!data || typeof data!=='object' || !ranks.has(String(data.codePrestation||''))) return null;
+    const status=String(data.statut||'').toUpperCase();
+    if (!Object.prototype.hasOwnProperty.call(statusLabels,status)) return null;
+    const date=String(data.datePrevue||'');
+    return {
+      inscriptionId:String(data.inscriptionId||'').slice(0,120),
+      codePublic:String(data.codePublic||'').slice(0,100),
+      codePrestation:String(data.codePrestation),statut:status,
+      datePrevue:/^\d{4}-\d{2}-\d{2}$/.test(date)?date:'',
+      heurePrevue:/^\d{2}:\d{2}$/.test(String(data.heurePrevue||''))?String(data.heurePrevue):''
+    };
+  }
+  function dateLabel(row){
+    if (!row.datePrevue) return 'Date à convenir';
+    const d=new Date(row.datePrevue+'T12:00:00');
+    if(Number.isNaN(d.getTime()))return 'Date à convenir';
+    return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})+(row.heurePrevue?' · '+row.heurePrevue:'');
+  }
+  function badgeLabel(n){return n>99?'99+':String(n);}
+  function setCount(value){
+    const bell=E('l6-bell'),badge=E('l6-bell-badge'),dot=E('l6-bell-unknown');
+    pending=Number.isInteger(value)&&value>=0?value:null;
+    E('l6-total').textContent=pending===null?'—':String(pending);
+    badge.hidden=pending===null||pending===0;badge.textContent=pending===null?'':badgeLabel(pending);
+    dot.hidden=pending!==null;
+    bell.setAttribute('aria-label',pending===null?'Demandes CLIENT : compteur indisponible. Ouvrir la file':(pending===0?'Aucune demande en attente. Ouvrir la file':pending+' demandes en attente. Ouvrir la file'));
+  }
+  function notice(text,klass){const e=E('l6-notice');e.textContent=text;e.className='l6-notice'+(klass?' '+klass:'');}
+  function setData(payload){
+    ready=Boolean(payload&&payload.sourceReady);
+    nextCursor=ready&&Number.isInteger(payload.curseurSuivant)?payload.curseurSuivant:null;
+    rows=ready&&Array.isArray(payload.dossiers)?payload.dossiers.map(normalize).filter(Boolean):[];
+    setCount(ready?payload.totalEnAttente:null);
+    E('l6-summary-info').textContent=demonstration?'Données fictives · aperçu local':(ready?'Données autorisées · lecture seule':'Connexion CLIENT non disponible');
+    if(demonstration)notice('MODE DÉMONSTRATION — réservations fictives, aucun client réel, aucune écriture.','l6-demo');
+    else if(!ready)notice("L'accès aux demandes CLIENT est indisponible. Le propriétaire de BOXY CONTROL doit avoir accès au classeur BOXY CLIENT officiel.");
+    else notice('Demandes consultées en direct sur BOXY CLIENT, sans copie ni écriture.','l6-demo');
+    render();
+  }
+  function render(){
+    const target=E('l6-groups');target.replaceChildren();
+    E('l6-more').hidden=!ready||nextCursor===null||demonstration;
+    E('l6-detail').hidden=true;
+    if(!granted){const el=document.createElement('p');el.className='l6-empty';el.textContent='Accès réservé aux agents autorisés.';target.append(el);return;}
+    if(!ready){const el=document.createElement('p');el.className='l6-empty';el.textContent='Aucune donnée de réservation réelle disponible pour le moment.';target.append(el);return;}
+    const sf=E('l6-status').value,cf=E('l6-prestation').value;
+    const filtered=rows.filter(r=>(sf==='TOUS'||r.statut===sf)&&(cf==='TOUS'||r.codePrestation===cf));
+    filtered.sort((a,b)=>ranks.get(a.codePrestation)-ranks.get(b.codePrestation)||
+      (a.datePrevue||'9999').localeCompare(b.datePrevue||'9999')||
+      (a.heurePrevue||'99:99').localeCompare(b.heurePrevue||'99:99')||a.codePublic.localeCompare(b.codePublic));
+    if(!filtered.length){const el=document.createElement('p');el.className='l6-empty';el.textContent='Aucune demande correspondant à ces filtres.';target.append(el);return;}
+    const groups=new Map();filtered.forEach(r=>{if(!groups.has(r.codePrestation))groups.set(r.codePrestation,[]);groups.get(r.codePrestation).push(r);});
+    for(const [code,list] of groups){
+      const box=document.createElement('section');box.className='l6-group';
+      const head=document.createElement('div');head.className='l6-grouphead';
+      const strong=document.createElement('strong');strong.textContent=title.get(code);
+      const badge=document.createElement('span');badge.textContent=list.length+' dossier'+(list.length>1?'s':'');head.append(strong,badge);box.append(head);
+      list.forEach(r=>{
+        const btn=document.createElement('button');btn.className='l6-row';btn.type='button';
+        btn.setAttribute('aria-label','Consulter '+r.codePublic+' · '+title.get(code));
+        const left=document.createElement('span');left.className='l6-rowmain';
+        const ref=document.createElement('strong');ref.textContent=r.codePublic||'Référence indisponible';
+        const date=document.createElement('small');date.textContent=dateLabel(r);left.append(ref,date);
+        const right=document.createElement('span');right.className='l6-rowend';
+        const status=document.createElement('span');status.className='l6-state'+(r.statut==='CONFIRMEE'?' is-confirmed':r.statut==='ANNULEE'?' is-cancelled':'');status.textContent=statusLabels[r.statut];
+        const chevron=document.createElement('span');chevron.className='l6-chevron';chevron.textContent='›';right.append(status,chevron);
+        btn.append(left,right);btn.addEventListener('click',()=>showDetail(r));box.append(btn);
+      });target.append(box);
+    }
+  }
+  function detailLine(root,caption,value){const row=document.createElement('div');row.className='l6-detail-line';const a=document.createElement('span');a.textContent=caption;const b=document.createElement('strong');b.textContent=value;row.append(a,b);root.append(row);}
+  function showDetail(row){
+    // Le Lot 3 ne consulte que la synthese FILE. L'interface detaillée L7
+    // reste disponible pour la demo historique, sans déclencher DOSSIER
+    // sur de vrais clients avant le Lot 4/7.
+    if(demonstration){
+      const openEvent=new CustomEvent('bxct:l6:dossier-select',{
+        cancelable:true,
+        detail:{inscriptionId:row.inscriptionId,codePublic:row.codePublic,
+          codePrestation:row.codePrestation,statut:row.statut,
+          datePrevue:row.datePrevue,heurePrevue:row.heurePrevue}
+      });
+      if(!document.dispatchEvent(openEvent))return;
+    }
+    const box=E('l6-detail'),lines=E('l6-detail-lines');lines.replaceChildren();
+    E('l6-detail-title').textContent=row.codePublic||'Réservation';
+    detailLine(lines,'Prestation',title.get(row.codePrestation)||'—');
+    detailLine(lines,'Date prévue',dateLabel(row));
+    detailLine(lines,'État',statusLabels[row.statut]);
+    box.hidden=false;box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+  function loadMore(){
+    if(!granted||loading||demonstration||nextCursor===null||!authToken)return;
+    loading=true;E('l6-more').disabled=true;const rv=sessionVersion,fv=filterVersion;
+    window.google.script.run.withSuccessHandler(result=>{
+      if(rv!==sessionVersion||!granted)return;
+      loading=false;E('l6-more').disabled=false;
+      if(fv!==filterVersion){refresh();return;}
+      if(!result||!result.ok||!result.sourceReady){notice('Impossible de charger la suite.','l6-alert');return;}
+      const known=new Set(rows.map(x=>x.inscriptionId));
+      (result.dossiers||[]).map(normalize).filter(Boolean).forEach(x=>{if(!known.has(x.inscriptionId)){rows.push(x);known.add(x.inscriptionId);}});
+      nextCursor=Number.isInteger(result.curseurSuivant)?result.curseurSuivant:null;
+      setCount(result.totalEnAttente);render();
+    }).withFailureHandler(()=>{if(rv!==sessionVersion)return;loading=false;E('l6-more').disabled=false;
+      if(fv!==filterVersion){refresh();return;}
+      notice('Chargement de la suite temporairement indisponible.','l6-alert');})
+      .BXCT_L6_LIRE_FILE(authToken,Object.assign(filtreActuel(),{curseur:nextCursor}));
+  }
+  function refresh(){
+    if(!granted||loading)return;
+    if(demonstration){setData({sourceReady:true,totalEnAttente:demoRows.filter(x=>x.statut==='EN_ATTENTE').length,dossiers:demoRows});return;}
+    if(!authToken||!window.google?.script?.run){setData({sourceReady:false});return;}
+    loading=true;E('l6-refresh').disabled=true;
+    const currentSession=sessionVersion,currentFilter=filterVersion;
+    window.google.script.run.withSuccessHandler(result=>{
+      if(currentSession!==sessionVersion||!granted)return;
+      loading=false;E('l6-refresh').disabled=false;
+      if(currentFilter!==filterVersion){refresh();return;}
+      if(!result||!result.ok){setData({sourceReady:false});notice('La liste n’a pas pu être chargée. Réessayez depuis un compte autorisé.','l6-alert');return;}
+      setData(result);
+    }).withFailureHandler(()=>{
+      if(currentSession!==sessionVersion||!granted)return;
+      loading=false;E('l6-refresh').disabled=false;
+      if(currentFilter!==filterVersion){refresh();return;}
+      setData({sourceReady:false});notice('Accès refusé, droits ROLES inactifs ou consultation indisponible.','l6-alert');
+    }).BXCT_L6_LIRE_FILE(authToken,Object.assign(filtreActuel(),{curseur:0}));
+  }
+  function ouvrirPanneau(){
+    if(E('l6-bell').hidden || !E('l6-view').hidden)return;
+    lastFocus=document.activeElement;
+    E('l6-backdrop').hidden=false;
+    E('l6-view').hidden=false;
+    document.body.classList.add('l6-dialog-open');
+    E('l6-bell').setAttribute('aria-expanded','true');
+    E('l6-view').focus({preventScroll:true});
+    if(granted)refresh();
+    else {setData({sourceReady:false});notice('Accès réservé aux agents autorisés.','l6-alert');}
+  }
+  function fermerPanneau(restoreFocus=true){
+    if(E('l6-view').hidden)return;
+    E('l6-view').hidden=true;
+    E('l6-backdrop').hidden=true;
+    E('l6-bell').setAttribute('aria-expanded','false');
+    document.body.classList.remove('l6-dialog-open');
+    if(restoreFocus && lastFocus && typeof lastFocus.focus==='function' && lastFocus.isConnected && !lastFocus.hidden){
+      lastFocus.focus({preventScroll:true});
+    }
+    lastFocus=null;
+  }
+  function clavierPanneau(ev){
+    if(E('l6-view').hidden)return;
+    if(ev.key==='Escape'){ev.preventDefault();fermerPanneau();return;}
+    if(ev.key!=='Tab')return;
+    const elements=[...E('l6-view').querySelectorAll('button:not([disabled]),select:not([disabled]),a[href]')]
+      .filter(el=>!el.closest('[hidden]')&&el.getClientRects().length>0);
+    if(!elements.length){ev.preventDefault();E('l6-view').focus();return;}
+    const first=elements[0],last=elements[elements.length-1];
+    if(ev.shiftKey && (document.activeElement===first || document.activeElement===E('l6-view'))){ev.preventDefault();last.focus();}
+    else if(!ev.shiftKey && document.activeElement===last){ev.preventDefault();first.focus();}
+  }
+  function onLogin(result,token){
+    sessionVersion++;
+    demonstration=Boolean(result?.demo);authToken=token||null;
+    limiterOptions(result);filterVersion++;
+    granted=demonstration||allowedPrestations.size>0;
+    // La cloche reste visible pour chaque session connectée; les droits filtrent la lecture côté serveur.
+    E('l6-bell').hidden=false;
+    if(granted)refresh();
+    else {
+      setData({sourceReady:false});
+      E('l6-bell-unknown').hidden=true;
+      E('l6-bell').setAttribute('aria-label','Demandes CLIENT : accès restreint');
+    }
+  }
+  function onLogout(){
+    fermerPanneau(false);
+    sessionVersion++;E('l6-refresh').disabled=false;
+    // La demo ne conserve pas de changement de session apres deconnexion.
+    demoRows.forEach(row=>{row.statut=demoSeedStatus.get(row.inscriptionId);});
+    authToken=null;granted=false;demonstration=false;ready=false;rows=[];loading=false;nextCursor=null;filterVersion++;allowedPrestations.clear();
+    E('l6-bell').hidden=true;E('l6-bell').setAttribute('aria-expanded','false');E('l6-detail').hidden=true;
+    E('l6-status').value='TOUS';E('l6-prestation').value='TOUS';
+    setCount(null);render();
+  }
+  function init(){
+    document.addEventListener('bxct:l7:demo-change',ev=>{
+      if(!demonstration||!granted||!ev.detail||ev.detail.demoOnly!==true)return;
+      const item=demoRows.find(r=>r.inscriptionId===ev.detail.inscriptionId&&
+        r.codePublic===ev.detail.codePublic);
+      if(!item||!['EN_ATTENTE','CONFIRMEE','ANNULEE'].includes(ev.detail.statut))return;
+      item.statut=ev.detail.statut;
+      setData({sourceReady:true,totalEnAttente:demoRows.filter(r=>r.statut==='EN_ATTENTE').length,dossiers:demoRows});
+    });
+    E('l6-bell').addEventListener('click',ouvrirPanneau);
+    E('l6-back').addEventListener('click',()=>fermerPanneau());
+    E('l6-backdrop').addEventListener('click',()=>fermerPanneau());
+    document.addEventListener('keydown',clavierPanneau);
+    E('l6-refresh').addEventListener('click',refresh);
+    E('l6-more').addEventListener('click',loadMore);
+    document.addEventListener('bxct:l7:remote-change',()=>{if(granted&&!demonstration)refresh();});
+    E('l6-status').addEventListener('change',()=>{filterVersion++;if(!loading)refresh();});
+    E('l6-prestation').addEventListener('change',()=>{filterVersion++;if(!loading)refresh();});
+    E('l6-detail-close').addEventListener('click',()=>{E('l6-detail').hidden=true;});
+    setCount(null);
+    window.setInterval(()=>{if(granted&&!demonstration&&authToken&&document.visibilityState==='visible')refresh();},90000);
+  }
+  return {init,onLogin,onLogout,refresh};
+})();
+</script>

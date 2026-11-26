@@ -1,0 +1,23 @@
+<style>
+#bxct-aca-desk-open{display:flex;align-items:center;gap:12px;width:100%;min-height:68px;text-align:left;border:1px solid #a4d4b6;border-radius:16px;background:#e9f7ee;color:#20573a;padding:12px;margin:12px 0;cursor:pointer}
+#bxct-aca-desk-open svg{width:26px;height:26px;flex:none}#bxct-aca-desk-open small{display:block;margin-top:4px;font-size:12px}#bxct-aca-desk-open:disabled{opacity:.65;cursor:not-allowed}
+#bxct-aca-desk{min-width:0;overflow-wrap:anywhere;padding-bottom:env(safe-area-inset-bottom,0px)}
+#bxct-aca-desk .desk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+#bxct-aca-desk .desk-card,#bxct-aca-desk .desk-row{min-width:0;border:1px solid #d7e9dd;border-radius:14px;padding:12px;background:#fff;color:#20573a}
+#bxct-aca-desk .desk-card strong{display:block;font-size:clamp(16px,2.5vw,23px);margin-top:6px}#bxct-aca-desk .desk-card small{font-size:12px;color:#536f60}
+#bxct-aca-desk .desk-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}#bxct-aca-desk button,#bxct-aca-desk input,#bxct-aca-desk select{min-height:44px;max-width:100%;white-space:normal;font-size:14px}#bxct-aca-desk input{flex:1 1 160px;min-width:0;font-size:16px;padding:8px;border:1px solid #b9d5c3;border-radius:10px}#bxct-aca-desk select{padding:8px;border:1px solid #b9d5c3;border-radius:10px;background:white;color:#20573a}
+#bxct-aca-desk .desk-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}#bxct-aca-desk .desk-row p{margin:4px 0;font-size:12px;color:#536f60}#bxct-aca-desk .desk-row>div{flex:1 1 180px;min-width:0}#bxct-aca-desk .desk-note{font-size:12px;color:#536f60;margin:8px 0}#bxct-aca-desk [hidden],#bxct-aca-desk[hidden]{display:none!important}
+@media(min-width:960px){#bxct-aca-desk .desk-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+<section id="bxct-aca-desk" data-panel="enc-academie" hidden aria-labelledby="bxct-aca-desk-title">
+ <button type="button" class="secondary-action" id="bxct-aca-desk-back">Retour à ACADÉMIE</button>
+ <h2 id="bxct-aca-desk-title">Encaissements ACADÉMIE</h2>
+ <p class="desk-note">Registre commun · Formation uniquement · Lecture seule. Aucun paiement ou remboursement réel depuis cet espace.</p>
+ <div id="bxct-aca-desk-summary" class="desk-grid"></div>
+ <p class="desk-note">Totaux ACADÉMIE : dossiers avec historique et devis figés validés dans CONTROL, y compris sans versement. Les filtres ci-dessous concernent uniquement les listes.</p>
+ <form id="bxct-aca-desk-form" class="desk-controls"><label for="bxct-aca-desk-code">Code participant</label><input id="bxct-aca-desk-code" placeholder="BX.FOR.XX" autocomplete="off"><button type="submit" class="secondary-action">Filtrer</button><button type="button" id="bxct-aca-desk-person" class="secondary-action">Ouvrir la fiche participant</button></form>
+ <div class="desk-controls"><label for="bxct-aca-desk-view">Afficher</label><select id="bxct-aca-desk-view"><option value="HISTORIQUE">Historique des encaissements</option><option value="ATTENTE">Paiements et remboursements en attente</option><option value="SOLDES">Soldes des participants</option><option value="RECUS">Mouvements validés / reçus</option></select><button type="button" id="bxct-aca-desk-refresh" class="secondary-action">Actualiser</button></div>
+ <p id="bxct-aca-desk-status" role="status" aria-live="polite"></p><div id="bxct-aca-desk-rows"></div>
+ <div class="desk-controls"><button type="button" id="bxct-aca-desk-prev" class="secondary-action" disabled>Précédent</button><button type="button" id="bxct-aca-desk-next" class="secondary-action" disabled>Suivant</button></div>
+ <p class="desk-note">Pour consulter un reçu ou un devis détaillé, ouvrez la fiche du participant puis Encaissements ACADÉMIE. Les droits historiques restent requis.</p>
+</section>

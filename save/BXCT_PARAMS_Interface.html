@@ -1,0 +1,54 @@
+<!-- BOXY CONTROL | PARAMETRES | Parametres / Agents et utilisateurs -->
+<section id="bx-settings-agents" class="bx-param" aria-label="Paramètres des utilisateurs">
+  <div class="bx-param-head">
+    <div><div class="eyebrow">BOXY CONTROL · PARAMÈTRES</div><h2>Agents et utilisateurs</h2>
+      <p>Gestion réservée aux administrateurs BOXY CONTROL. Les droits des agents restent indépendants.</p></div>
+    <div class="bx-param-header-actions"><span id="bx-param-login-state" class="bx-param-state">Préparation interne</span></div>
+  </div>
+  <div id="bx-param-status" class="statusbox" aria-live="polite">Vérification de la session administrateur…</div>
+  <button type="button" id="bx-param-retry" class="bx-param-link bx-param-retry">Réessayer l’accès</button>
+  <div id="bx-param-content" hidden>
+    <div class="bx-param-summary"><span><strong id="bx-param-count">0</strong> comptes</span><span id="bx-param-role-count">0 rôles</span></div>
+    <div class="bx-param-activation" id="bx-param-activation">
+      <div><strong>Connexion de l'équipe</strong><p id="bx-param-login-hint">Définissez d'abord le mot de passe admin.</p></div>
+      <button id="bx-param-login-enable" type="button" class="bx-param-primary">Activer le login</button>
+    </div>
+    <div class="bx-param-card">
+      <div class="bx-param-card-head"><strong id="bx-param-form-title">Nouvel utilisateur</strong>
+        <button type="button" id="bx-param-reset" class="bx-param-link">Nouveau</button></div>
+      <form id="bx-param-form" autocomplete="off">
+        <input id="bx-param-id" type="hidden">
+        <label for="bx-param-name">Nom affiché</label>
+        <input id="bx-param-name" maxlength="80" minlength="2" required placeholder="Ex. Agent accueil">
+        <label for="bx-param-login">Identifiant</label>
+        <input id="bx-param-login" maxlength="32" minlength="3" required placeholder="Ex. agent.accueil" autocapitalize="off" spellcheck="false">
+        <label for="bx-param-role">Rôle</label>
+        <select id="bx-param-role" required></select>
+        <label for="bx-param-note">Note interne (facultative)</label>
+        <input id="bx-param-note" maxlength="200" placeholder="Service, équipe, zone…">
+        <label class="bx-param-checkbox"><input id="bx-param-active" type="checkbox" checked> Compte actif</label>
+        <button type="submit" id="bx-param-submit" class="bx-param-primary">Enregistrer</button>
+        <p class="bx-param-hint">Le mot de passe de chaque agent se définit ensuite dans sa fiche. La première connexion demandera de le modifier.</p>
+      </form>
+    </div>
+    <div class="bx-param-card">
+      <div class="bx-param-card-head"><strong>Comptes enregistrés</strong><button type="button" id="bx-param-refresh" class="bx-param-link">Actualiser</button></div>
+      <div id="bx-param-list" class="bx-param-list"></div>
+      <form id="bx-param-admin-secret-form" class="bx-param-secret-form" hidden autocomplete="off">
+        <input type="hidden" id="bx-param-secret-agent-id">
+        <div class="bx-param-card-head"><strong id="bx-param-admin-secret-title">Mot de passe administrateur</strong>
+          <button type="button" id="bx-param-admin-secret-cancel" class="bx-param-link">Fermer</button></div>
+        <p class="bx-param-hint" id="bx-param-secret-hint">Action réservée à un administrateur autorisé. Le mot de passe ne sera jamais stocké en clair.</p>
+        <label for="bx-param-admin-secret-first">Nouveau mot de passe</label>
+        <input type="password" id="bx-param-admin-secret-first" minlength="12" maxlength="256" autocomplete="new-password" required>
+        <label for="bx-param-admin-secret-confirm">Confirmer le mot de passe</label>
+        <input type="password" id="bx-param-admin-secret-confirm" minlength="12" maxlength="256" autocomplete="new-password" required>
+        <p class="bx-param-hint">12 caractères minimum, avec majuscule, minuscule, chiffre et symbole.</p>
+        <button type="submit" id="bx-param-admin-secret-save" class="bx-param-primary">Enregistrer le mot de passe</button>
+      </form>
+    </div>
+    <div class="bx-param-card bx-param-roles"><strong>Rôles existants</strong><div id="bx-param-roles" class="bx-param-roles-list"></div>
+      <p class="bx-param-hint">Les permissions métier sont toujours pilotées dans ROLES. Activer le login ne rend pas les paiements ni les réservations actifs.</p>
+    </div>
+  </div>
+</section>

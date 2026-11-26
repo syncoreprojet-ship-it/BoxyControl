@@ -1,0 +1,277 @@
+<!-- BOXY CONTROL PARAMETRES | UI -> API -> AUTH -> VALIDATION -> SERVICE -> DATA -->
+<script>
+'use strict';
+let BXCT_PARAMS_etat_=null;
+let BXCT_PARAMS_busy_=false;
+let BXCT_PARAMS_started_=false;
+// Jeton de connexion stocke UNIQUEMENT en memoire, jamais dans l'URL ni Sheets.
+let BXCT_PARAMS_sessionToken_=null;
+let BXCT_PARAMS_loginBusy_=false;
+function BXCT_PARAMS_UI_gate_(message){
+ BXCT_PARAMS_sessionToken_=null;BXCT_PARAMS_etat_=null;BXCT_PARAMS_started_=false;
+ qs('bx-settings-gate-loading').hidden=true;
+ qs('bx-settings-layout').hidden=true;
+ qs('bx-settings-logout').hidden=true;
+ qs('bx-param-content').hidden=true;
+ qs('bx-param-list').replaceChildren();qs('bx-param-roles').replaceChildren();
+ qs('bx-param-admin-secret-form').reset();qs('bx-param-admin-secret-form').hidden=true;
+ qs('bx-param-form').reset();qs('bx-param-id').value='';
+ qs('bx-settings-auth').hidden=false;
+ qs('bx-settings-login-error').textContent=message||'';
+ qs('bx-settings-login-error').hidden=!message;
+ qs('bx-settings-login-password').value='';
+}
+function BXCT_PARAMS_UI_autorisee_(){
+ qs('bx-settings-gate-loading').hidden=true;
+ qs('bx-settings-auth').hidden=true;
+ qs('bx-settings-layout').hidden=false;
+ qs('bx-settings-logout').hidden=!BXCT_PARAMS_sessionToken_;
+}
+function BXCT_PARAMS_UI_refus_(r){
+ var code=String(r&&r.code||'');
+ if(['SESSION_INVALIDE','AUTH_NON_ACTIVE','CHANGEMENT_MDP_OBLIGATOIRE','ACCES_ADMIN_UNIQUEMENT'].includes(code)){
+  BXCT_PARAMS_UI_gate_(BXCT_PARAMS_UI_erreur_(code));return true;
+ }
+ return false;
+}
+function BXCT_PARAMS_UI_message_(message,error){
+ const node=qs('bx-param-status');node.textContent=message;node.className='statusbox'+(error?' error':'');node.hidden=false;
+}
+function BXCT_PARAMS_UI_erreur_(code){
+ const translations={SESSION_INVALIDE:'Session expirée. Connectez-vous avec un compte administrateur.',
+  ACCES_ADMIN_UNIQUEMENT:'Accès réservé aux administrateurs BOXY CONTROL.',
+  AUTH_NON_ACTIVE:'Login inactif : accès réservé au propriétaire durant la préparation.',
+  CHANGEMENT_MDP_OBLIGATOIRE:'Changez d’abord votre mot de passe depuis l’accueil.',
+  CONNEXION_REFUSEE:'Identifiant ou mot de passe incorrect.',
+  PROPRIETAIRE_NON_IDENTIFIE:'Votre identité propriétaire n’est pas disponible dans ce déploiement Apps Script.',
+  ACCES_PROPRIETAIRE_UNIQUEMENT:'Seul le propriétaire du classeur peut gérer les agents pendant la préparation.',
+  OPERATIONS_OCCUPEES:'Une autre opération est en cours. Réessayez.',
+  ADMIN_CONFLIT_VERIFIER:'Le compte admin existe avec un identifiant ou un rôle différent. Vérifiez AGENTS.',
+  IDENTIFIANT_EXISTANT:'Cet identifiant est déjà utilisé.',AGENT_INTROUVABLE:'Agent introuvable.',
+  NOM_INVALIDE:'Nom invalide.',IDENTIFIANT_INVALIDE:'Identifiant invalide.',ROLE_INVALIDE:'Rôle invalide.',
+  ADMIN_INITIAL_PROTEGE:'Le compte administrateur initial ne peut pas être modifié ici.',
+  SCHEMA_AGENTS_INCOMPATIBLE:'Les colonnes AGENTS ne correspondent pas au schéma attendu.',
+  ADMIN_INITIAL_INATTENDU:'Compte admin absent, inactif ou modifie. Verifiez AGENTS.',
+  MOT_DE_PASSE_TROP_FAIBLE:'Mot de passe insuffisant : au moins 12 caracteres, majuscule, minuscule, chiffre et symbole.',
+  MOT_DE_PASSE_NON_CONFIRME:'Modification non confirmée. Actualisez avant de réessayer.',
+  MOT_DE_PASSE_REFUSE:'Impossible de définir ce mot de passe.',
+  DEFINIR_MOT_DE_PASSE_ADMIN:'Définissez le mot de passe de admin avant activation.',
+  MODE_LOGIN_INCOHERENT:'Les paramètres du login sont incohérents. Vérifiez PARAMETRES.',
+  ACTIVATION_LOGIN_NON_CONFIRMEE:'Activation non confirmée. Actualisez Paramètres.',
+  JOURNAL_AUTH_INVALIDE:'Le journal des connexions est incompatible.'};
+ return translations[code]||('Action indisponible : '+String(code||'inconnue'));
+}
+function BXCT_PARAMS_UI_fermerSecret_(){
+ const form=qs('bx-param-admin-secret-form');
+ form.reset();form.hidden=true;qs('bx-param-secret-agent-id').value='';
+}
+function BXCT_PARAMS_UI_ouvrirSecret_(id){
+ if(BXCT_PARAMS_busy_||!BXCT_PARAMS_etat_)return;
+ const a=BXCT_PARAMS_etat_.agents.find(x=>x.id===id);if(!a)return;
+ const form=qs('bx-param-admin-secret-form');
+ qs('bx-param-secret-agent-id').value=a.id;form.hidden=false;
+ qs('bx-param-admin-secret-title').textContent=(a.motDePasseDefini?'Réinitialiser':'Définir')+' le mot de passe · '+a.identifiant;
+ qs('bx-param-secret-hint').textContent=id==='ADMIN-001'?
+  'Mot de passe administrateur, sans changement obligatoire au premier accès.':
+  'Mot de passe initial : l’agent devra le changer à sa première connexion.';
+ form.scrollIntoView({behavior:'smooth',block:'nearest'});
+ qs('bx-param-admin-secret-first').focus();
+}
+function BXCT_PARAMS_UI_formVide_(){
+ qs('bx-param-id').value='';qs('bx-param-name').value='';qs('bx-param-login').value='';
+ qs('bx-param-note').value='';qs('bx-param-active').checked=true;
+ qs('bx-param-form-title').textContent='Nouvel utilisateur';
+ qs('bx-param-submit').textContent='Créer le compte';
+}
+function BXCT_PARAMS_UI_render_(etat){
+ BXCT_PARAMS_etat_=etat;qs('bx-param-content').hidden=false;qs('bx-param-retry').hidden=true;
+ qs('bx-param-count').textContent=String(etat.agents.length);
+ qs('bx-param-role-count').textContent=etat.roles.length+' rôles';
+ const select=qs('bx-param-role'),current=select.value;
+ select.replaceChildren();etat.roles.forEach(role=>{
+  const opt=document.createElement('option');opt.value=role.code;opt.textContent=role.code.replaceAll('_',' ');
+  select.appendChild(opt);
+ });if(etat.roles.some(r=>r.code===current))select.value=current;else if(etat.roles.some(r=>r.code==='AGENT'))select.value='AGENT';
+ qs('bx-param-login-state').textContent=etat.loginActif?'Login actif':'Préparation interne';
+ qs('bx-param-login-hint').textContent=etat.loginActif?
+  'L’identifiant et le mot de passe sont exigés à l’accueil. Les droits ROLES restent distincts.':
+  (etat.adminMotDePasseDefini?'Admin prêt : vous pouvez activer le mini-login.':
+   'Définissez le mot de passe admin avant d’activer le login.');
+ qs('bx-param-login-enable').hidden=Boolean(etat.loginActif);
+ qs('bx-param-login-enable').disabled=!etat.adminMotDePasseDefini;
+ const holder=qs('bx-param-list');holder.replaceChildren();
+ if(!etat.agents.length){const note=document.createElement('p');note.textContent='Aucun compte.';holder.appendChild(note);}
+ etat.agents.forEach(a=>{
+  const item=document.createElement('div');item.className='bx-param-user';
+  const main=document.createElement('div');main.className='bx-param-user-main';
+  const name=document.createElement('strong');name.textContent=a.nom;
+  const detail=document.createElement('small');detail.textContent=a.identifiant+' · '+a.role.replaceAll('_',' ');
+  main.append(name,detail);
+  const badge=document.createElement('span');badge.className='bx-param-flag'+(a.actif?'':' off');badge.textContent=a.actif?'Actif':'Inactif';
+  item.append(main,badge);
+  if(a.id!=='ADMIN-001'){
+   const edit=document.createElement('button');edit.type='button';edit.className='bx-param-link';edit.textContent='Modifier';
+   edit.addEventListener('click',()=>BXCT_PARAMS_UI_editer_(a.id));item.append(edit);
+  }
+  const passwordButton=document.createElement('button');passwordButton.type='button';passwordButton.className='bx-param-link';
+  passwordButton.textContent=a.motDePasseDefini?'Réinitialiser le mot de passe':'Définir le mot de passe';
+  passwordButton.addEventListener('click',()=>BXCT_PARAMS_UI_ouvrirSecret_(a.id));item.append(passwordButton);
+  const passwordStatus=document.createElement('small');passwordStatus.className='bx-param-password-status';
+  passwordStatus.textContent=a.motDePasseDefini?'Mot de passe défini':'Mot de passe non défini';
+  main.appendChild(passwordStatus);
+  holder.appendChild(item);
+ });
+ const rbox=qs('bx-param-roles');rbox.replaceChildren();etat.roles.forEach(r=>{
+  const b=document.createElement('span');b.className='bx-param-role';b.textContent=r.code.replaceAll('_',' ')+' · '+r.actives+'/'+r.regles+' droits';rbox.appendChild(b);
+ });
+}
+function BXCT_PARAMS_UI_editer_(id){
+ const a=BXCT_PARAMS_etat_?.agents.find(x=>x.id===id);if(!a)return;
+ qs('bx-param-id').value=a.id;qs('bx-param-name').value=a.nom;qs('bx-param-login').value=a.identifiant;
+ qs('bx-param-role').value=a.role;qs('bx-param-active').checked=a.actif;
+ qs('bx-param-note').value=a.note||'';
+ qs('bx-param-form-title').textContent='Modifier '+a.identifiant;
+ qs('bx-param-submit').textContent='Enregistrer les changements';
+ qs('bx-param-form').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function BXCT_PARAMS_UI_ouvrir_(){
+ if(BXCT_PARAMS_busy_||BXCT_PARAMS_started_)return;
+ BXCT_PARAMS_started_=true;qs('bx-param-retry').hidden=true;
+ if(!window.google?.script?.run){BXCT_PARAMS_UI_gate_('Ouvrez le déploiement Apps Script pour accéder à Paramètres.');return;}
+ BXCT_PARAMS_busy_=true;
+ const runner=google.script.run.withSuccessHandler(r=>{
+  BXCT_PARAMS_busy_=false;
+  if(!r?.ok){
+   if(!BXCT_PARAMS_sessionToken_&&r?.code==='SESSION_INVALIDE'){
+    // Premiere visite: le formulaire d'identification est normal, pas une erreur.
+    BXCT_PARAMS_UI_gate_('');return;
+   }
+   if(BXCT_PARAMS_UI_refus_(r))return;
+   BXCT_PARAMS_UI_gate_(BXCT_PARAMS_UI_erreur_(r?.code));return;
+  }
+  BXCT_PARAMS_UI_autorisee_();
+  const state=r.data?.etat||r.data;
+  BXCT_PARAMS_UI_render_(state);
+  BXCT_PARAMS_UI_message_(BXCT_PARAMS_sessionToken_?'Session administrateur vérifiée.':
+   'Mode préparation : identité propriétaire vérifiée.');
+ }).withFailureHandler(()=>{
+  BXCT_PARAMS_busy_=false;
+  BXCT_PARAMS_UI_gate_('Vérification impossible. Veuillez réessayer.');
+ });
+ // Le mode préparation n'est utilisable que par le propriétaire natif.
+ // Avec LOCAL_PASSWORD, seules les sessions BOXY ADMIN_CONTROL sont acceptées.
+ if(BXCT_PARAMS_sessionToken_)runner.BXCT_PARAMS_API_etat(BXCT_PARAMS_sessionToken_);
+ else runner.BXCT_PARAMS_API_initialiser(null);
+}
+// Login dédié à cette page, adossé au MEME moteur local que /exec.
+// On ne transmet jamais un jeton par l'URL /exec?page=parametres.
+qs('bx-settings-login-form').addEventListener('submit',event=>{
+ event.preventDefault();if(BXCT_PARAMS_loginBusy_)return;
+ const identifiant=qs('bx-settings-login-id').value.trim();
+ const password=qs('bx-settings-login-password').value;
+ if(!identifiant||!password||!window.google?.script?.run)return;
+ BXCT_PARAMS_loginBusy_=true;qs('bx-settings-login-submit').disabled=true;
+ qs('bx-settings-login-error').hidden=true;
+ google.script.run.withSuccessHandler(r=>{
+  BXCT_PARAMS_loginBusy_=false;qs('bx-settings-login-submit').disabled=false;
+  qs('bx-settings-login-password').value='';
+  if(!r?.ok||!r.data?.token){BXCT_PARAMS_UI_gate_(BXCT_PARAMS_UI_erreur_(r?.code||'CONNEXION_REFUSEE'));return;}
+  if(r.data.mustChange){
+   google.script.run.withFailureHandler(()=>{}).BXCT_LOGIN_API_fermer(r.data.token);
+   BXCT_PARAMS_UI_gate_(BXCT_PARAMS_UI_erreur_('CHANGEMENT_MDP_OBLIGATOIRE'));return;
+  }
+  if(r.data.bootstrap?.agent?.role!=='ADMIN_CONTROL'){
+   google.script.run.withFailureHandler(()=>{}).BXCT_LOGIN_API_fermer(r.data.token);
+   BXCT_PARAMS_UI_gate_(BXCT_PARAMS_UI_erreur_('ACCES_ADMIN_UNIQUEMENT'));return;
+  }
+  BXCT_PARAMS_sessionToken_=r.data.token;BXCT_PARAMS_started_=false;
+  BXCT_PARAMS_UI_ouvrir_();
+ }).withFailureHandler(()=>{
+  BXCT_PARAMS_loginBusy_=false;qs('bx-settings-login-submit').disabled=false;
+  BXCT_PARAMS_UI_gate_('Connexion indisponible. Réessayez.');
+ }).BXCT_LOGIN_API_ouvrir(identifiant,password);
+});
+qs('bx-settings-logout').addEventListener('click',()=>{
+ const token=BXCT_PARAMS_sessionToken_;
+ BXCT_PARAMS_UI_gate_('Session fermée.');
+ qs('bx-settings-login-id').value='';
+ if(token&&window.google?.script?.run)
+  google.script.run.withFailureHandler(()=>{}).BXCT_LOGIN_API_fermer(token);
+});
+// La navigation /exec <-> /exec?page=parametres est faite par des liens Web App.
+// Cette UI ne depend pas du dashboard, de switchTab ou de previewDemo.
+qs('bx-param-retry').addEventListener('click',BXCT_PARAMS_UI_ouvrir_);
+qs('bx-param-admin-secret-cancel').addEventListener('click',BXCT_PARAMS_UI_fermerSecret_);
+qs('bx-param-admin-secret-form').addEventListener('submit',e=>{
+ e.preventDefault();
+ if(BXCT_PARAMS_busy_||!BXCT_PARAMS_etat_)return;
+ const agentId=qs('bx-param-secret-agent-id').value;
+ const password=qs('bx-param-admin-secret-first').value;
+ const confirmation=qs('bx-param-admin-secret-confirm').value;
+ if(password!==confirmation){BXCT_PARAMS_UI_message_('Les deux mots de passe ne correspondent pas.',true);return;}
+ if(password.length<12||!/[a-z]/.test(password)||!/[A-Z]/.test(password)||!/[0-9]/.test(password)||!/[^a-zA-Z0-9]/.test(password)){
+  BXCT_PARAMS_UI_message_('12 caractères minimum, avec majuscule, minuscule, chiffre et symbole.',true);return;
+ }
+ BXCT_PARAMS_busy_=true;qs('bx-param-admin-secret-save').disabled=true;
+ BXCT_PARAMS_UI_message_('Enregistrement du mot de passe administrateur…');
+ const runner=google.script.run.withSuccessHandler(r=>{
+  BXCT_PARAMS_busy_=false;qs('bx-param-admin-secret-save').disabled=false;
+  BXCT_PARAMS_UI_fermerSecret_();
+  if(!r?.ok){if(BXCT_PARAMS_UI_refus_(r))return;BXCT_PARAMS_UI_message_(BXCT_PARAMS_UI_erreur_(r?.code),true);return;}
+  if(agentId==='ADMIN-001'&&BXCT_PARAMS_sessionToken_){
+   // Le changement du mot de passe admin revoque sa propre session serveur.
+   BXCT_PARAMS_UI_gate_('Mot de passe mis à jour. Reconnectez-vous pour accéder à Paramètres.');
+   return;
+  }
+  BXCT_PARAMS_UI_render_(r.data.etat);
+  BXCT_PARAMS_UI_message_('Mot de passe enregistré. '+(r.data.etat.loginActif?'Login actif.':'Activez le login quand vous êtes prêt.'));
+ }).withFailureHandler(()=>{
+  BXCT_PARAMS_busy_=false;qs('bx-param-admin-secret-save').disabled=false;
+  BXCT_PARAMS_UI_fermerSecret_();
+  BXCT_PARAMS_UI_message_('Opération non confirmée. Actualisez avant de réessayer.',true);
+ });
+ if(agentId==='ADMIN-001')runner.BXCT_PARAMS_API_motDePasseAdmin(BXCT_PARAMS_sessionToken_,password);
+ else runner.BXCT_PARAMS_API_motDePasseAgent(BXCT_PARAMS_sessionToken_,agentId,password);
+});
+qs('bx-param-login-enable').addEventListener('click',()=>{
+ if(BXCT_PARAMS_busy_||!BXCT_PARAMS_etat_||BXCT_PARAMS_etat_.loginActif||
+    !BXCT_PARAMS_etat_.adminMotDePasseDefini)return;
+ if(!confirm('Activer le mini-login de BOXY CONTROL ? Les agents sans mot de passe ne pourront pas se connecter.'))return;
+ BXCT_PARAMS_busy_=true;qs('bx-param-login-enable').disabled=true;
+ BXCT_PARAMS_UI_message_('Activation sécurisée du login…');
+ google.script.run.withSuccessHandler(r=>{
+  BXCT_PARAMS_busy_=false;
+  if(!r?.ok){if(BXCT_PARAMS_UI_refus_(r))return;qs('bx-param-login-enable').disabled=false;
+   BXCT_PARAMS_UI_message_(BXCT_PARAMS_UI_erreur_(r?.code),true);return;}
+  BXCT_PARAMS_UI_render_(r.data.etat);
+  BXCT_PARAMS_UI_message_('Login activé. Ouvrez /exec pour vous connecter.');
+ }).withFailureHandler(()=>{
+  BXCT_PARAMS_busy_=false;qs('bx-param-login-enable').disabled=false;
+  BXCT_PARAMS_UI_message_('Activation non confirmée. Actualisez puis vérifiez l’état.',true);
+ }).BXCT_PARAMS_API_activerLogin(BXCT_PARAMS_sessionToken_);
+});
+qs('bx-param-reset').addEventListener('click',BXCT_PARAMS_UI_formVide_);
+qs('bx-param-refresh').addEventListener('click',()=>{BXCT_PARAMS_started_=false;BXCT_PARAMS_UI_ouvrir_();});
+qs('bx-param-form').addEventListener('submit',e=>{
+ e.preventDefault();if(BXCT_PARAMS_busy_||!BXCT_PARAMS_etat_)return;
+ const id=qs('bx-param-id').value;
+ const payload={nom:qs('bx-param-name').value,identifiant:qs('bx-param-login').value,
+  role:qs('bx-param-role').value,actif:qs('bx-param-active').checked,note:qs('bx-param-note').value};
+ BXCT_PARAMS_busy_=true;qs('bx-param-submit').disabled=true;
+ BXCT_PARAMS_UI_message_('Enregistrement de l’utilisateur…');
+ const runner=google.script.run.withSuccessHandler(r=>{
+   BXCT_PARAMS_busy_=false;qs('bx-param-submit').disabled=false;
+   if(!r?.ok){if(BXCT_PARAMS_UI_refus_(r))return;BXCT_PARAMS_UI_message_(BXCT_PARAMS_UI_erreur_(r?.code),true);return;}
+   BXCT_PARAMS_UI_render_(r.data.etat);BXCT_PARAMS_UI_formVide_();
+   BXCT_PARAMS_UI_message_(id?'Compte mis à jour.':'Utilisateur créé. Définissez son mot de passe dans sa fiche.');
+ }).withFailureHandler(()=>{
+   BXCT_PARAMS_busy_=false;qs('bx-param-submit').disabled=false;
+   BXCT_PARAMS_UI_message_('Enregistrement non confirmé. Actualisez avant de réessayer.',true);
+ });
+ if(id)runner.BXCT_PARAMS_API_modifierAgent(BXCT_PARAMS_sessionToken_,id,payload);
+ else runner.BXCT_PARAMS_API_creerAgent(BXCT_PARAMS_sessionToken_,payload);
+});
+// Ouverture : la garde serveur choisit role ADMIN_CONTROL ou mode preparation
+// proprietaire uniquement lorsque le login local n'est pas encore actif. Les permissions metier restent independantes.
+BXCT_PARAMS_UI_ouvrir_();
+</script>

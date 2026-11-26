@@ -1,0 +1,22 @@
+<script>
+(function(){
+ const el=id=>document.getElementById(id);let page=0,sequence=0;
+ const money=n=>new Intl.NumberFormat('fr-FR').format(n)+' FCFA';
+ function clear(){sequence++;page=0;el('bxct-enc-summary').replaceChildren();el('bxct-enc-history').replaceChildren();el('bxct-enc-status').textContent='';el('bxct-enc-prev').disabled=true;el('bxct-enc-next').disabled=true;}
+ function line(target,text){const d=document.createElement('div');d.className='enc-line';d.textContent=text;target.appendChild(d);}
+ function load(){const request=++sequence,token=idToken;el('bxct-enc-summary').replaceChildren();el('bxct-enc-history').replaceChildren();el('bxct-enc-prev').disabled=true;el('bxct-enc-next').disabled=true;el('bxct-enc-status').textContent='Chargement…';
+ if(previewMode||!token){el('bxct-enc-status').textContent='Lecture réelle indisponible en démonstration.';return;}
+ google.script.run.withFailureHandler(()=>{if(request===sequence&&token===idToken)el('bxct-enc-status').textContent='Registre indisponible.';}).withSuccessHandler(r=>{
+ if(request!==sequence||token!==idToken)return;
+ if(!r||!r.ok){el('bxct-enc-status').textContent=r?.message||'Accès refusé.';return;}
+ const d=r.data;el('bxct-enc-status').textContent=d.nombre+' transaction(s) · page '+(page+1);
+ for(const [name,t] of [['Total',d.totaux],...Object.entries(d.prestations)])line(el('bxct-enc-summary'),name+' · Net : '+money(t.netFcfa)+' · Espèces : '+money(t.especesNetFcfa)+' · Mobile Money : '+money(t.mobileNetFcfa)+' · Remboursé : '+money(t.rembourseFcfa)+' · Versements en attente : '+money(t.versementsAttenteFcfa)+' · Remboursements en attente : '+money(t.remboursementsAttenteFcfa)+' · Attente nette : '+money(t.attenteFcfa)+' · Solde : '+money(t.soldeFcfa));
+ for(const t of d.historique)line(el('bxct-enc-history'),[t.prestation,t.code,t.type,t.methode,money(t.montantFcfa),t.statut,t.date].join(' · '));
+ el('bxct-enc-prev').disabled=page===0;el('bxct-enc-next').disabled=(page+1)*50>=d.nombre;
+ }).BXCT_ENC_LIRE(token,{prestation:el('bxct-enc-filter').value,page});}
+ el('bxct-enc-open').addEventListener('click',()=>{clear();switchTab('enc-general');load();});
+ el('bxct-enc-refresh').addEventListener('click',load);el('bxct-enc-filter').addEventListener('change',()=>{page=0;load();});
+ el('bxct-enc-prev').addEventListener('click',()=>{if(page>0){page--;load();}});el('bxct-enc-next').addEventListener('click',()=>{page++;load();});
+ window.BXCT_ENC_UI={onLogin:r=>{clear();el('bxct-enc-open').hidden=!(r.demo||(['ADMIN_CONTROL','SUPERVISEUR'].includes(r.agent.role)&&['CONSULTER_PAIEMENTS','CONSULTER_FINANCES_ACADEMIE'].every(p=>r.permissions.includes(p))));},onLogout:()=>{clear();el('bxct-enc-open').hidden=true;}};
+})();
+</script>

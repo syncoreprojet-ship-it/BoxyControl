@@ -1,0 +1,26 @@
+<script>
+(function(){
+ const el=id=>document.getElementById('bxct-aca-desk'+id),panel=el('');
+ let page=0,seq=0,allowed=false,lookup=false,code='';
+ const money=n=>new Intl.NumberFormat('fr-FR').format(n)+' FCFA';
+ const active=()=>!panel.hidden&&allowed;
+ function clear(){seq++;el('-summary').replaceChildren();el('-rows').replaceChildren();el('-status').textContent='';el('-prev').disabled=el('-next').disabled=true;}
+ function reset(){clear();page=0;code='';el('-code').value='';el('-view').value='HISTORIQUE';}
+ function status(s){el('-status').textContent=s;}
+ function card(label,value){const d=document.createElement('div');d.className='desk-card';const l=document.createElement('small'),v=document.createElement('strong');l.textContent=label;v.textContent=money(value);d.append(l,v);el('-summary').append(d);}
+ function openPerson(raw){if(!active()||!lookup)return;const c=raw?academyNormaliserCode(raw):'';if(raw&&!c){status('Code BX.FOR invalide.');return;}reset();academyLookupHide(true);academyOpenLookup();if(c){document.getElementById('academy-lookup-code').value=c;}}
+ function render(d){const t=d.totaux;[['Net encaissé','netFcfa'],['Reste à payer','soldeFcfa'],['Espèces nettes','especesNetFcfa'],['Mobile Money net','mobileNetFcfa'],['Versements en attente','versementsAttenteFcfa'],['Remboursements en attente','remboursementsAttenteFcfa']].forEach(x=>card(x[0],t[x[1]]));
+ status(d.nombre+' résultat(s) · page '+(page+1));
+ for(const r of d.lignes){const row=document.createElement('div');row.className='desk-row';const body=document.createElement('div'),title=document.createElement('strong'),detail=document.createElement('p');title.textContent=r.code;detail.textContent=d.vue==='SOLDES'?'Devis : '+money(r.devisFcfa)+' · Net : '+money(r.netFcfa)+' · Solde : '+money(r.soldeFcfa):[r.type,r.methode,money(r.montantFcfa),r.statut,r.date].join(' · ');body.append(title,detail);row.append(body);if(lookup&&academyNormaliserCode(r.code)){const b=document.createElement('button');b.type='button';b.className='secondary-action';b.textContent='Ouvrir la fiche';b.addEventListener('click',()=>openPerson(r.code));row.append(b);}el('-rows').append(row);}
+ el('-prev').disabled=page===0;el('-next').disabled=(page+1)*50>=d.nombre;
+ }
+ function load(){clear();if(!active())return;if(previewMode){status('Démonstration : registre réel non consulté.');return;}const token=idToken,request=seq;if(!token){status('Session indisponible.');return;}status('Chargement…');const current=()=>active()&&request===seq&&token===idToken;
+ google.script.run.withFailureHandler(()=>{if(current())status('Registre indisponible.');}).withSuccessHandler(r=>{if(!current())return;if(!r?.ok){status(r?.message||'Accès refusé.');return;}render(r.data);}).BXCT_ENC_ACADEMY_DESK_LIRE(token,{page,view:el('-view').value,code});}
+ el('-open').addEventListener('click',()=>{if(!allowed)return;reset();switchTab('enc-academie');load();});
+ el('-back').addEventListener('click',()=>{reset();switchTab('home');});
+ el('-form').addEventListener('submit',e=>{e.preventDefault();const raw=el('-code').value.trim();const c=raw?academyNormaliserCode(raw):'';if(raw&&!c){status('Code BX.FOR invalide.');return;}code=c;el('-code').value=c;page=0;load();});
+ el('-person').addEventListener('click',()=>openPerson(el('-code').value.trim()));
+ el('-view').addEventListener('change',()=>{page=0;load();});el('-refresh').addEventListener('click',load);el('-prev').addEventListener('click',()=>{if(page>0){page--;load();}});el('-next').addEventListener('click',()=>{page++;load();});
+ window.BXCT_ENC_ACADEMY_DESK_UI={onLogin:r=>{reset();allowed=Boolean(r.demo||r.features?.academyFinanceActive);lookup=Boolean(r.demo||r.features?.academyLookupActive);el('-open').disabled=!allowed;el('-access').textContent=allowed?'Paiements, soldes et historique':'Accès fermé : droits ou verrous de lecture';el('-person').disabled=!lookup;},onLogout:()=>{allowed=lookup=false;reset();el('-open').disabled=true;},onTab:tab=>{if(tab!=='enc-academie')reset();}};
+})();
+</script>
